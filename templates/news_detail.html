@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ article.title }} | Jhapa FC{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container">
+  <div class="cat" style="color:var(--primary-light);margin-bottom:8px;">{{ article.category }}</div>
+  <h1 style="max-width:800px;margin:0 auto;">{{ article.title }}</h1>
+  <p>{{ article.publish_date.strftime('%d %B %Y') }} · {{ article.author }}</p>
+</div></div>
+<section class="section"><div class="container" style="max-width:780px;">
+  <div style="white-space:pre-line;color:var(--text-muted);font-size:1.05rem;line-height:1.8;">{{ article.content }}</div>
+  {% if related %}
+  <h3 style="color:#fff;margin:40px 0 16px;">Related</h3>
+  <div class="grid-3">
+    {% for r in related %}
+    <a href="{{ url_for('main.news_detail', slug=r.slug) }}" class="card news-card"><div class="body"><h3>{{ r.title }}</h3></div></a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div></section>
+{% endblock %}

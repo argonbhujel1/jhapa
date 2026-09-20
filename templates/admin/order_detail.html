@@ -1,0 +1,33 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Order {{ order.order_number }} | Admin{% endblock %}
+{% block content %}
+<div class="container" style="max-width:800px;padding:40px 20px;">
+  <h2 style="color:var(--text);">Order {{ order.order_number }}</h2>
+  <div class="card" style="padding:24px;margin-top:16px;">
+    <p><strong>Customer:</strong> {{ order.customer_name }} · {{ order.customer_phone }}</p>
+    <p><strong>Email:</strong> {{ order.customer_email or '—' }}</p>
+    <p><strong>Address:</strong> {{ order.address }}, {{ order.city or '' }} {{ order.province or '' }}</p>
+    <p><strong>Total:</strong> Rs. {{ "{:,.0f}".format(order.total) }} · {{ order.payment_method }}</p>
+    <p><strong>Current Status:</strong> <span class="badge">{{ order.status }}</span></p>
+    <form method="POST" action="{{ url_for('admin.order_status', id=order.id) }}" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <select name="status" class="form-control" style="max-width:200px;">
+        {% for s in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
+        <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Update Status</button>
+    </form>
+    <p class="text-muted" style="font-size:0.8rem;margin-top:8px;">When status is set to <strong>Confirmed</strong>, product stock is reduced automatically.</p>
+    <h3 style="color:var(--text);margin:20px 0 10px;">Items</h3>
+    <ul>
+      {% for i in order.items %}
+      <li style="margin-bottom:6px;">{{ i.product_name }} × {{ i.quantity }} — Rs. {{ i.unit_price }}
+        {% if i.size %} ({{ i.size }}){% endif %}
+        {% if i.is_custom %} · Custom: {{ i.custom_name }} #{{ i.custom_number }}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <a href="{{ url_for('admin.orders_list') }}" class="btn btn-outline mt-2">← Orders</a>
+  </div>
+</div>
+{% endblock %}

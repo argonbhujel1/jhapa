@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin | Jhapa FC{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function(){ var t = localStorage.getItem('jhapa-theme') || 'dark'; document.documentElement.setAttribute('data-theme', t); })();
+  </script>
+  <style>
+    body { min-height: 100vh; }
+    .admin-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; border-bottom: 1px solid var(--glass-border);
+      background: rgba(3,7,18,0.9); backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .admin-topbar .brand { font-family: var(--font-display); color: var(--neon); letter-spacing: 1px; font-weight: 700; }
+    .admin-topbar a { color: var(--text-muted); font-size: 0.85rem; margin-left: 16px; }
+    .admin-topbar a:hover { color: var(--neon); }
+    html[data-theme="light"] .admin-topbar { background: rgba(255,255,255,0.95); }
+  </style>
+</head>
+<body>
+  <div class="admin-topbar">
+    <div>
+      <span class="brand">JHAPA FC ADMIN</span>
+    </div>
+    <div>
+      <button type="button" class="btn btn-ghost theme-toggle" id="themeToggle" style="padding:6px 10px;" title="Theme">
+        <span class="theme-icon-dark">🌙</span><span class="theme-icon-light">☀️</span>
+      </button>
+      <a href="{{ url_for('main.index') }}" target="_blank">View Site</a>
+      <a href="{{ url_for('admin.logout') }}">Logout</a>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-messages">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    var themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function(){
+        var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        var next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('jhapa-theme', next);
+      });
+    }
+    setTimeout(function(){
+      document.querySelectorAll('.alert').forEach(function(a){
+        a.style.opacity='0'; a.style.transition='opacity .4s';
+        setTimeout(function(){ a.remove(); }, 400);
+      });
+    }, 4000);
+  });
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

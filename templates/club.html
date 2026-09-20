@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}About Club | Jhapa FC{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1>More Than A Club</h1><p>The Pride of Jhapa</p></div></div>
+<section class="section"><div class="container">
+  {% if about %}<p style="font-size:1.1rem;color:var(--text-muted);max-width:800px;margin:0 auto 40px;text-align:center;line-height:1.8;">{{ about.content }}</p>{% endif %}
+  <div class="grid-3">
+    {% if vision %}<div class="card" style="padding:24px;"><h3 style="color:var(--primary-light);margin-bottom:10px;">{{ vision.title }}</h3><p style="color:var(--text-muted);">{{ vision.content }}</p></div>{% endif %}
+    {% if mission %}<div class="card" style="padding:24px;"><h3 style="color:var(--primary-light);margin-bottom:10px;">{{ mission.title }}</h3><p style="color:var(--text-muted);">{{ mission.content }}</p></div>{% endif %}
+    {% if values %}<div class="card" style="padding:24px;"><h3 style="color:var(--primary-light);margin-bottom:10px;">{{ values.title }}</h3><p style="color:var(--text-muted);">{{ values.content }}</p></div>{% endif %}
+  </div>
+  {% if established %}<p class="text-center mt-3 text-muted">Established {{ established.content }}</p>{% endif %}
+</div></section>
+{% endblock %}

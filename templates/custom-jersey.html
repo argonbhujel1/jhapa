@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Make Your Own Jersey | Jhapa FC{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1>Make Your Own Jhapa FC Jersey</h1><p>Personalise with your name & number</p></div></div>
+<section class="section"><div class="container">
+  <div class="grid-2" style="align-items:start;">
+    <div class="card" style="padding:40px;text-align:center;">
+      <div style="font-size:5rem;margin-bottom:16px;">👕</div>
+      <p style="color:var(--primary-light);font-weight:700;" id="previewName">YOUR NAME</p>
+      <p style="font-size:2.5rem;font-weight:900;color:#fff;" id="previewNum">10</p>
+      <p class="text-muted mt-2">Live preview</p>
+    </div>
+    <div>
+      <form method="POST">
+        <div class="form-group"><label>Jersey Type</label>
+          <select name="jersey_type" class="form-control"><option>Home</option><option>Away</option><option>Third</option></select>
+        </div>
+        <div class="form-group"><label>Size</label>
+          <select name="size" class="form-control"><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>XXL</option></select>
+        </div>
+        <div class="form-group"><label>Player Name (max 12)</label>
+          <input type="text" name="player_name" class="form-control" maxlength="12" placeholder="YOUR NAME" id="nameInput">
+        </div>
+        <div class="form-group"><label>Jersey Number</label>
+          <input type="text" name="jersey_number" class="form-control" maxlength="2" placeholder="10" id="numInput">
+        </div>
+        <div class="form-group"><label>Quantity</label>
+          <input type="number" name="quantity" value="1" min="1" max="5" class="form-control" style="max-width:100px;">
+        </div>
+        <p style="font-size:1.3rem;font-weight:700;color:var(--primary-light);margin:16px 0;">Rs. {{ "{:,.0f}".format(base_price) }} <small style="font-size:0.8rem;color:var(--text-muted);">per jersey</small></p>
+        <button type="submit" class="btn btn-primary">Add to Cart</button>
+      </form>
+    </div>
+  </div>
+</div></section>
+<script>
+document.getElementById('nameInput').addEventListener('input', e => document.getElementById('previewName').textContent = e.target.value || 'YOUR NAME');
+document.getElementById('numInput').addEventListener('input', e => document.getElementById('previewNum').textContent = e.target.value || '10');
+</script>
+{% endblock %}

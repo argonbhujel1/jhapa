@@ -1,0 +1,15 @@
+{% extends "admin/base_admin.html" %}{% block content %}
+<div class="container" style="max-width:700px;padding:40px 20px;">
+<h2 style="color:#fff;">Match Form</h2>
+<form method="POST" class="card" style="padding:24px;">
+<div class="form-group"><label>Opponent</label><input name="opponent" class="form-control" value="{{ item.opponent if item else '' }}" required></div>
+<div class="form-group"><label>Competition</label><input name="competition" class="form-control" value="{{ item.competition if item else 'Nepal Super League' }}"></div>
+<div class="form-group"><label>Venue</label><input name="venue" class="form-control" value="{{ item.venue if item else '' }}"></div>
+<div class="form-group"><label>Date/Time</label><input type="datetime-local" name="match_date" class="form-control" value="{{ item.match_date.strftime('%Y-%m-%dT%H:%M') if item and item.match_date else '' }}"></div>
+<div class="form-group"><label><input type="checkbox" name="is_home" {% if not item or item.is_home %}checked{% endif %}> Home Match</label></div>
+<div class="form-group"><label>Status</label><select name="status" class="form-control"><option value="upcoming">Upcoming</option><option value="finished">Finished</option><option value="live">Live</option></select></div>
+<div class="form-group"><label>Home Score</label><input type="number" name="home_score" class="form-control" value="{{ item.home_score if item and item.home_score is not none else '' }}"></div>
+<div class="form-group"><label>Away Score</label><input type="number" name="away_score" class="form-control" value="{{ item.away_score if item and item.away_score is not none else '' }}"></div>
+<div class="form-group"><label><input type="checkbox" name="is_published" checked> Published</label></div>
+<button class="btn btn-primary">Save</button>
+</form></div>{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Leadership | Jhapa FC{% endblock %}
+{% block content %}
+<div class="page-header"><div class="container"><h1>Club Leadership</h1><p>The People Behind JHAPA FC</p></div></div>
+<section class="section"><div class="container">
+  <div class="tabs">
+    {% for s in sections %}
+    <a href="?section={{ s }}" class="{% if current_section == s %}active{% endif %}">{{ s }}</a>
+    {% endfor %}
+  </div>
+  {% if leaders %}
+  <div class="grid-4">
+    {% for l in leaders %}
+    <a href="{{ url_for('main.leadership_detail', id=l.id) }}" class="card player-card leadership-card {% if l.section == 'Technical Team' %}tech-glow{% endif %}" data-section="{{ l.section or '' }}">
+      <div class="avatar">{% if l.photo %}<img src="/uploads/{{ l.photo }}" alt="{{ l.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">{% else %}👤{% endif %}</div>
+      <h4>{{ l.name }}</h4>
+      <p class="text-muted" style="font-size:0.8rem;">{{ l.position }}</p>
+      {% if l.section %}<span class="badge section-badge">{{ l.section }}</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="coming-soon">
+    <div class="icon">👔</div>
+    <h2>OFFICIAL INFORMATION COMING SOON</h2>
+    <p>Leadership for {% if current_section and current_section != 'All' %}{{ current_section }}{% else %}all sections{% endif %} will appear when published from Admin.</p>
+  </div>
+  {% endif %}
+</div></section>
+{% endblock %}

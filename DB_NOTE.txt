@@ -1,0 +1,1 @@
+IMPORTANT: Delete old jhapa_fc.db (or /tmp/jhapa_fc.db) once so new columns (leadership.section, member payment fields, plan free_tickets) are created. Then run: python app.py

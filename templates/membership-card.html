@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Digital Membership Card | Jhapa FC{% endblock %}
+{% block content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">Your Digital Membership Card</h2>
+  <div class="digital-card">
+    <div class="crest">🐘</div>
+    <h3>JHAPA FC</h3>
+    <p class="member-no">{{ member.membership_number }}</p>
+    <div class="label">Official Member</div>
+    <div class="value">{{ member.full_name }}</div>
+    <div class="label">Plan</div>
+    <div class="value">{{ member.plan.name if member.plan else '—' }}</div>
+    <div class="label">Valid Until</div>
+    <div class="value">{{ member.expires_at.strftime('%d %b %Y') if member.expires_at else '—' }}</div>
+    <div class="label">Payment</div>
+    <div class="value">{{ member.payment_status|upper if member.payment_status else '—' }}</div>
+    {% if member.free_tickets %}
+    <div class="label">Free Match Tickets</div>
+    <div class="value">{{ member.free_tickets }}</div>
+    {% endif %}
+    {% if member.payment_status == 'submitted' or member.status == 'pending' %}
+    <p style="margin-top:12px;font-size:0.8rem;color:var(--warning);">⏳ Awaiting admin payment verification</p>
+    {% endif %}
+    <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);">THE ELEPHANTS OF JHAPA</p>
+  </div>
+  <div class="text-center mt-3"><a href="{{ url_for('main.index') }}" class="btn btn-outline">Back to Home</a></div>
+</div></section>
+{% endblock %}

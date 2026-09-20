@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}Jhapa FC | Official Football Club{% endblock %}
+
+{% block content %}
+<section class="hero"{% if home_bg %} style="--home-bg: url('{{ home_bg|media_url }}')"{% endif %}>
+  <div class="container">
+    <div class="hero-content">
+      <span class="hero-badge">The Elephants of Jhapa</span>
+      <h1>JHAPA FC</h1>
+      <p class="headline">ONE CLUB. ONE PRIDE.</p>
+      <p>The Pride of Jhapa — representing passion, unity and excellence on the pitch.</p>
+      <div class="hero-btns">
+        <a href="{{ url_for('main.matches') }}" class="btn btn-primary">MATCH CENTRE</a>
+        <a href="{{ url_for('shop.shop') }}" class="btn btn-outline">SHOP OFFICIAL KIT</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    {% if hero_card %}
+    <div class="hero-card-img">
+      <img src="{{ hero_card|media_url }}" alt="Jhapa FC" loading="lazy">
+    </div>
+    {% else %}
+    <div class="placeholder-team">⚽</div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Next Match</h2>
+    <p class="section-sub">Upcoming fixture</p>
+    {% if next_match %}
+    <div class="next-match">
+      <div class="match-meta">
+        {{ next_match.competition }} · {{ next_match.match_date.strftime('%A, %d %B %Y') }} · {{ next_match.match_date.strftime('%H:%M') }}
+        {% if next_match.venue %} · {{ next_match.venue }}{% endif %}
+      </div>
+      <div class="vs-row">
+        <div class="team-box">
+          <div class="crest">{% if club_logo %}<img src="{{ club_logo|media_url }}" alt="Jhapa FC" style="width:100%;height:100%;object-fit:contain;border-radius:50%;">{% else %}🐘{% endif %}</div>
+          <h3>Jhapa FC</h3>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="team-box">
+          <div class="crest">⚽</div>
+          <h3>{{ next_match.opponent }}</h3>
+        </div>
+      </div>
+      <div class="countdown" id="countdown" data-date="{{ next_match.match_date.isoformat() }}">
+        <div class="countdown-item"><span class="num" id="cd-days">--</span><span class="label">Days</span></div>
+        <div class="countdown-item"><span class="num" id="cd-hours">--</span><span class="label">Hours</span></div>
+        <div class="countdown-item"><span class="num" id="cd-mins">--</span><span class="label">Mins</span></div>
+        <div class="countdown-item"><span class="num" id="cd-secs">--</span><span class="label">Secs</span></div>
+      </div>
+      <div class="mt-3">
+        <a href="{{ url_for('main.match_detail', id=next_match.id) }}" class="btn btn-outline">Match Details</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="coming-soon">
+      <div class="icon">📅</div>
+      <h2>Official fixture information coming soon</h2>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section home-performers-section">
+  <div class="container">
+    <div class="season-note card" style="padding:20px 24px;margin-bottom:36px;text-align:center;">
+      <p style="color:var(--neon);font-weight:600;margin:0;letter-spacing:1px;">📅 SEASON UPDATE</p>
+      <p class="text-muted" style="margin:8px 0 0;">This season starts at the <strong style="color:var(--text);">end of March</strong>. Fixtures, results and live match centre will open then.</p>
+    </div>
+
+    <h2 class="section-title tp-home-title">TOP PERFORMERS</h2>
+    <p class="section-sub">Standout players of Jhapa FC</p>
+
+    {% if performers %}
+    <div class="tp-home-grid">
+      {% for p in performers %}
+      <div class="tp-card tp-card-neon">
+        <div class="tp-info">
+          <div class="tp-cat">{{ p.category|upper }}</div>
+          <div class="tp-stat">{{ p.value }} {% if 'Assist' in p.category %}ASSISTS{% elif 'Clean' in p.category %}CS{% elif 'Scorer' in p.category or 'Goal' in p.category %}GOALS{% else %}{% endif %}</div>
+          <div class="tp-name">{{ p.name|upper }}</div>
+        </div>
+        <div class="tp-photo">
+          {% if p.photo %}
+          <img src="{{ p.photo|media_url }}" alt="{{ p.name }}">
+          {% else %}
+          <div class="tp-photo-ph">⚽</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('main.matches', tab='performers') }}" class="btn btn-outline">View All Performers</a>
+      <a href="{{ url_for('main.matches', tab='table') }}" class="btn btn-ghost" style="margin-left:8px;">League Table</a>
+    </div>
+    {% else %}
+    <div class="coming-soon" style="padding:40px;">
+      <div class="icon">⭐</div>
+      <h2>Top performers coming soon</h2>
+      <p>Admin → Top Performers बाट photo सहित add गर्नुहोस्।</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Latest News</h2>
+    <p class="section-sub">From the club and the pitch</p>
+    <div class="grid-4">
+      {% for article in latest_news %}
+      <a href="{{ url_for('main.news_detail', slug=article.slug) }}" class="card news-card">
+        <div class="thumb">📰</div>
+        <div class="body">
+          <div class="cat">{{ article.category }}</div>
+          <h3>{{ article.title }}</h3>
+          <p>{{ article.excerpt[:90] if article.excerpt else '' }}…</p>
+          <div class="meta">{{ article.publish_date.strftime('%d %b %Y') }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('main.news') }}" class="btn btn-outline">All News</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:rgba(15,39,68,0.35);">
+  <div class="container">
+    <h2 class="section-title">More Than A Club</h2>
+    <p class="section-sub">The Pride of Jhapa</p>
+    <div class="grid-2" style="align-items:center;">
+      <div>
+        {% if about %}
+        <p style="color:var(--text-muted);font-size:1.05rem;line-height:1.7;">{{ about.content }}</p>
+        {% endif %}
+        <div class="grid-3 mt-3" style="gap:12px;">
+          {% if vision %}
+          <div class="card" style="padding:16px;">
+            <h4 style="color:var(--primary-light);margin-bottom:6px;">{{ vision.title }}</h4>
+            <p style="font-size:0.85rem;color:var(--text-muted);">{{ vision.content[:100] }}…</p>
+          </div>
+          {% endif %}
+          {% if mission %}
+          <div class="card" style="padding:16px;">
+            <h4 style="color:var(--primary-light);margin-bottom:6px;">{{ mission.title }}</h4>
+            <p style="font-size:0.85rem;color:var(--text-muted);">{{ mission.content[:100] }}…</p>
+          </div>
+          {% endif %}
+          {% if values %}
+          <div class="card" style="padding:16px;">
+            <h4 style="color:var(--primary-light);margin-bottom:6px;">{{ values.title }}</h4>
+            <p style="font-size:0.85rem;color:var(--text-muted);">{{ values.content }}</p>
+          </div>
+          {% endif %}
+        </div>
+        <a href="{{ url_for('main.club') }}" class="btn btn-primary mt-3">About the Club</a>
+      </div>
+      <div class="about-side-card">
+        {% if about_card %}
+        <img src="{{ about_card|media_url }}" alt="Home of The Elephants" class="about-side-img" loading="lazy">
+        {% else %}
+        <div class="icon" style="font-size:2.5rem;">🏔️</div>
+        {% endif %}
+        <h2>Jhapa</h2>
+        <p>Home of The Elephants</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Our Squad</h2>
+    <p class="section-sub">The Elephants of Jhapa</p>
+    {% if squad_preview %}
+    <div class="squad-heading-row" style="margin-bottom:28px;">
+      <h2 class="squad-heading" style="font-size:1.2rem;">OUR SQUAD MEMBERS</h2>
+      <span class="squad-line"></span>
+      <a href="{{ url_for('main.squad') }}" class="squad-view-all">VIEW ALL SQUAD »</a>
+    </div>
+    <div class="squad-shield-grid">
+      {% for pl in squad_preview %}
+      <a href="{{ url_for('main.player', id=pl.id) }}" class="shield-card">
+        <div class="shield-inner">
+          <div class="shield-photo">
+            {% if pl.photo %}
+            <img src="{{ pl.photo|media_url }}" alt="{{ pl.name }}" loading="lazy">
+            {% else %}
+            <div class="shield-ph">⚽</div>
+            {% endif %}
+          </div>
+          <div class="shield-info">
+            <div class="shield-name">{{ (pl.name or 'Player')|upper }}</div>
+            <div class="shield-role">{% if pl.number %}#{{ pl.number }} · {% endif %}{{ pl.position or 'Player' }}</div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="coming-soon">
+      <div class="icon">⚽</div>
+      <h2>Official information coming soon</h2>
+      <p>Publish players from Admin → Players (tick Published) to show them here.</p>
+      <a href="{{ url_for('main.squad') }}" class="btn btn-outline mt-2">View Squad Page</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" style="background:rgba(15,39,68,0.4);">
+  <div class="container">
+    <h2 class="section-title">Official Store</h2>
+    <p class="section-sub">Official merchandise</p>
+    <div class="grid-4">
+      {% for p in featured_products %}
+      <a href="{{ url_for('shop.product', slug=p.slug) }}" class="card product-card">
+        <div class="thumb">
+                    👕
+        </div>
+        <div class="body">
+          <h3>{{ p.name }}</h3>
+          <div class="price">Rs. {{ "{:,.0f}".format(p.price) }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3">
+      <a href="{{ url_for('shop.shop') }}" class="btn btn-primary">Visit Full Store</a>
+      <a href="{{ url_for('shop.custom_jersey') }}" class="btn btn-outline" style="margin-left:10px;">Make Your Own Jersey</a>
+    </div>
+  </div>
+</section>
+
+<!-- Our Partners / Sponsors -->
+<section class="section sponsors-section">
+  <div class="container text-center">
+    <p class="sponsors-eyebrow">— POWERED BY —</p>
+    <h2 class="section-title sponsors-heading">OUR <span>PARTNERS.</span></h2>
+    <p class="section-sub">The brands that stand with The Elephants of Jhapa.</p>
+
+    {% if sponsors %}
+    {% set title_sp = sponsors|selectattr('category', 'equalto', 'Title Sponsor')|list %}
+    {% set principal = sponsors|selectattr('category', 'equalto', 'Principal Partner')|list %}
+    {% set official = sponsors|selectattr('category', 'equalto', 'Official Partner')|list %}
+    {% set main_sp = sponsors|selectattr('category', 'equalto', 'Main Sponsor')|list %}
+    {% set others = sponsors|rejectattr('category', 'in', ['Title Sponsor', 'Principal Partner', 'Official Partner', 'Main Sponsor'])|list %}
+
+    {% if title_sp %}
+    <p class="sponsor-tier-label">TITLE SPONSOR</p>
+    <div class="sponsors-tier sponsors-tier-title">
+      {% for s in title_sp %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-title-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if principal or main_sp %}
+    <p class="sponsor-tier-label">PRINCIPAL PARTNERS</p>
+    <div class="sponsors-tier sponsors-tier-principal">
+      {% for s in principal %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      {% for s in main_sp %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if official or others %}
+    <p class="sponsor-tier-label">OFFICIAL PARTNERS</p>
+    <div class="sponsors-tier sponsors-tier-official">
+      {% for s in official %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
+        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      {% for s in others %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
+        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="coming-soon" style="padding:40px;">
+      <div class="icon">🤝</div>
+      <h2>Partners coming soon</h2>
+      <p>Upload Title Sponsor, Principal &amp; Official Partner logos from Admin → Sponsors.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}
+
+{% block tech_partner %}
+<section class="tech-partner">
+  <div class="container text-center">
+    <span class="badge">OFFICIAL TECH PARTNER</span>
+    <h2>Powered by {{ bam_name or 'BAM Studio' }}</h2>
+    <p class="powered">WEB &amp; TECHNOLOGY PARTNER</p>
+    <p class="desc">
+      The official technology partner behind the Jhapa FC digital experience,
+      website, membership platform, online store and community technology.
+    </p>
+    <div class="services">
+      <span>Website Design &amp; Development</span>
+      <span>Fan Membership Platform</span>
+      <span>Online Store &amp; E-commerce</span>
+      <span>Admin Dashboard &amp; Backend</span>
+      <span>Digital Fan Experience</span>
+      <span>Website Maintenance &amp; Technology Support</span>
+    </div>
+    <div class="bam-brand bam-brand-lg">
+      {% if bam_logo %}
+      <img src="{{ bam_logo|media_url }}" alt="{{ bam_name or 'BAM Studio' }}" class="bam-logo-img">
+      {% else %}
+      <div class="bam-logo bam-logo-lg">B</div>
+      {% endif %}
+      <div class="bam-text">
+        <strong>{{ bam_name or 'BAM STUDIO' }}</strong>
+        <span>WEB &amp; TECHNOLOGY PARTNER</span>
+      </div>
+    </div>
+    <div class="mt-3">
+      <a href="{{ bam_url or 'https://argan.com.np/' }}" target="_blank" rel="noopener" class="btn btn-primary">VISIT {{ bam_name or 'BAM STUDIO' }} →</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function() {
+  const el = document.getElementById('countdown');
+  if (!el) return;
+  const target = new Date(el.dataset.date).getTime();
+  function tick() {
+    const now = Date.now();
+    let diff = Math.max(0, target - now);
+    const d = Math.floor(diff / 86400000); diff %= 86400000;
+    const h = Math.floor(diff / 3600000); diff %= 3600000;
+    const m = Math.floor(diff / 60000); diff %= 60000;
+    const s = Math.floor(diff / 1000);
+    document.getElementById('cd-days').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-mins').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-secs').textContent = String(s).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+{% endblock %}
