@@ -2045,3 +2045,103 @@ html:not([data-theme]) body {
   background: #fff;
   padding: 4px;
 }
+
+/* ===== Jersey back print layout (name / number / BAM / side logo) ===== */
+.jersey-print {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+/* NAME — upper back, above number */
+.jp-name {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72%;
+  text-align: center;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(0.7rem, 2.8vw, 0.95rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.7),
+    0 2px 6px rgba(0,0,0,0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+}
+/* NUMBER — center of back */
+.jp-number {
+  position: absolute;
+  top: 36%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  text-align: center;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(3.2rem, 16vw, 5.2rem);
+  line-height: 0.95;
+  color: #fff;
+  text-shadow:
+    0 3px 0 rgba(0,0,0,0.55),
+    0 0 18px rgba(0,0,0,0.35);
+  letter-spacing: 0.02em;
+}
+/* BAM Studio — under number */
+.jp-bam {
+  position: absolute;
+  top: 68%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 70%;
+}
+.jp-bam span {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(0.55rem, 2vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  white-space: nowrap;
+}
+.jp-bam-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.9);
+  padding: 2px;
+}
+/* Small club logo — right side of jersey */
+.jp-side-logo {
+  position: absolute;
+  right: 14%;
+  top: 52%;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+/* Hide old centered overlay if present */
+.jersey-back-overlay { display: none !important; }
+
+@media (max-width: 600px) {
+  .jp-name { top: 26%; font-size: 0.7rem; }
+  .jp-number { top: 34%; font-size: 3.4rem; }
+  .jp-bam { top: 66%; }
+  .jp-side-logo { width: 26px; height: 26px; right: 12%; }
+}
