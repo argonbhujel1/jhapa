@@ -7,10 +7,11 @@ load_dotenv(os.path.join(_BASE, '.env'))
 _INSTANCE = os.path.join(_BASE, 'instance')
 try:
     os.makedirs(_INSTANCE, exist_ok=True)
+    _sqlite_path = os.path.join(_INSTANCE, 'jhapa_fc.db')
 except OSError:
-    pass
+    _sqlite_path = '/tmp/jhapa_fc.db'
 
-_DEFAULT_DB = 'sqlite:///' + os.path.join(_INSTANCE, 'jhapa_fc.db').replace('\\', '/')
+_DEFAULT_DB = 'sqlite:///' + _sqlite_path.replace('\\', '/')
 
 
 def _normalize_db_url(url: str) -> str:

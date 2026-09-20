@@ -80,17 +80,29 @@ def ensure_schema(app):
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
-    # Ensure folders exist (Windows-safe)
-    os.makedirs(os.path.join(app.root_path, 'instance'), exist_ok=True)
-    os.makedirs(os.path.join(app.root_path, 'static', 'uploads'), exist_ok=True)
 
-    # Ensure upload folders
-    # Absolute upload path (fixes Windows relative path issues)
-    if not os.path.isabs(app.config['UPLOAD_FOLDER']):
-        app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    def _safe_makedirs(path):
+        """Vercel is read-only except /tmp — never crash on makedirs."""
+        try:
+            os.makedirs(path, exist_ok=True)
+            return True
+        except OSError:
+            return False
+
+    # Prefer /tmp on serverless (VERCEL=1)
+    is_serverless = bool(os.environ.get('VERCEL') or os.environ.get('AWS_LAMBDA_FUNCTION_NAME'))
+    if is_serverless:
+        upload_base = '/tmp/jhapa_uploads'
+        _safe_makedirs(upload_base)
+        app.config['UPLOAD_FOLDER'] = upload_base
+    else:
+        if not os.path.isabs(app.config['UPLOAD_FOLDER']):
+            app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+        _safe_makedirs(os.path.join(app.root_path, 'instance'))
+        _safe_makedirs(app.config['UPLOAD_FOLDER'])
+
     for sub in ['news', 'products', 'players', 'leadership', 'gallery', 'members', 'sponsors', 'branding']:
-        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], sub), exist_ok=True)
+        _safe_makedirs(os.path.join(app.config['UPLOAD_FOLDER'], sub))
 
     db.init_app(app)
     migrate = Migrate(app, db)
