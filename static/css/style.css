@@ -2231,3 +2231,28 @@ html:not([data-theme]) body {
     0 1px 2px rgba(0,0,0,0.8),
     0 0 8px rgba(0,0,0,0.4) !important;
 }
+
+
+/* Number style like pro kit: taller, narrower (Mbappé-style) */
+.jp-name {
+  top: 20% !important;
+  font-size: clamp(1.05rem, 3.8vw, 1.4rem) !important;
+  letter-spacing: 0.12em !important;
+  font-stretch: condensed;
+}
+.jp-number {
+  top: 30% !important;
+  font-size: clamp(4.8rem, 20vw, 7.2rem) !important;
+  line-height: 0.82 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.06em !important;
+  transform: translateX(-50%) scaleX(0.72) scaleY(1.15) !important;
+  transform-origin: center top !important;
+  text-shadow:
+    0 2px 0 rgba(0,0,0,0.45),
+    0 4px 12px rgba(0,0,0,0.25) !important;
+}
+.jp-bam {
+  bottom: 12% !important;
+  top: auto !important;
+}

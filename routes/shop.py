@@ -94,16 +94,19 @@ def custom_jersey():
             src = getattr(p, 'image_back', None) or p.image
             if not src:
                 continue
-            if 'home' in n and 'jersey' in n:
-                jersey_imgs['Home'] = src
-            elif 'away' in n and 'jersey' in n:
-                jersey_imgs['Away'] = src
-            elif 'third' in n and 'jersey' in n:
+            if 'third' in n or '3rd' in n:
                 jersey_imgs['Third'] = src
-            elif 'jersey' in n and not jersey_imgs['Home']:
+            elif 'away' in n:
+                jersey_imgs['Away'] = src
+            elif 'home' in n:
                 jersey_imgs['Home'] = src
+            elif 'jersey' in n or 'kit' in n:
+                if not jersey_imgs['Home']:
+                    jersey_imgs['Home'] = src
         if not any(jersey_imgs.values()):
             anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active == True).first()
+            if not anyj:
+                anyj = Product.query.filter(Product.is_active == True).first()
             if anyj:
                 src = getattr(anyj, 'image_back', None) or anyj.image
                 if src:
@@ -111,119 +114,3 @@ def custom_jersey():
     except Exception as e:
         print('custom_jersey image load:', e)
     return render_template('custom-jersey.html', base_price=base_price, jersey_imgs=jersey_imgs)
-
-@shop_bp.route('/cart')
-def cart():
-    items = get_cart_items()
-    subtotal, delivery, total = cart_totals(items)
-    return render_template('cart.html', items=items, subtotal=subtotal, delivery=delivery, total=total)
-
-@shop_bp.route('/cart/add', methods=['POST'])
-def cart_add():
-    product_id = request.form.get('product_id', type=int)
-    size = request.form.get('size', 'M')
-    qty = request.form.get('quantity', 1, type=int) or 1
-    qty = max(1, min(qty, 10))
-
-    product = Product.query.get_or_404(product_id)
-    variant = ProductVariant.query.filter_by(product_id=product.id, size=size).first()
-
-    sid = get_or_create_cart_id()
-    existing = CartItem.query.filter_by(session_id=sid, product_id=product.id, variant_id=variant.id if variant else None, is_custom=False).first()
-    if existing:
-        existing.quantity += qty
-    else:
-        item = CartItem(session_id=sid, product_id=product.id, variant_id=variant.id if variant else None, quantity=qty)
-        db.session.add(item)
-    db.session.commit()
-    flash(f'{product.name} added to cart.', 'success')
-    next_url = request.form.get('next') or url_for('shop.cart')
-    return redirect(next_url)
-
-@shop_bp.route('/cart/update', methods=['POST'])
-def cart_update():
-    item_id = request.form.get('item_id', type=int)
-    qty = request.form.get('quantity', 1, type=int)
-    item = CartItem.query.get_or_404(item_id)
-    if item.session_id != session.get('cart_id'):
-        flash('Invalid cart item.', 'error')
-        return redirect(url_for('shop.cart'))
-    if qty <= 0:
-        db.session.delete(item)
-    else:
-        item.quantity = min(qty, 10)
-    db.session.commit()
-    return redirect(url_for('shop.cart'))
-
-@shop_bp.route('/cart/remove/<int:item_id>', methods=['POST'])
-def cart_remove(item_id):
-    item = CartItem.query.get_or_404(item_id)
-    if item.session_id == session.get('cart_id'):
-        db.session.delete(item)
-        db.session.commit()
-        flash('Item removed.', 'success')
-    return redirect(url_for('shop.cart'))
-
-@shop_bp.route('/checkout', methods=['GET', 'POST'])
-def checkout():
-    items = get_cart_items()
-    if not items:
-        flash('Your cart is empty.', 'info')
-        return redirect(url_for('shop.shop'))
-
-    subtotal, delivery, total = cart_totals(items)
-
-    if request.method == 'POST':
-        name = request.form.get('full_name', '').strip()
-        phone = request.form.get('phone', '').strip()
-        email = request.form.get('email', '').strip()
-        address = request.form.get('address', '').strip()
-        city = request.form.get('city', '').strip()
-        province = request.form.get('province', '').strip()
-        postal = request.form.get('postal_code', '').strip()
-        payment = request.form.get('payment_method', 'Cash on Delivery')
-
-        if not all([name, phone, address]):
-            flash('Please fill required fields: Name, Phone, Address.', 'error')
-            return render_template('checkout.html', items=items, subtotal=subtotal, delivery=delivery, total=total)
-
-        order = Order(
-            order_number=generate_order_number(),
-            customer_name=name,
-            customer_email=email,
-            customer_phone=phone,
-            address=address,
-            city=city,
-            province=province,
-            postal_code=postal,
-            subtotal=subtotal,
-            delivery_fee=delivery,
-            total=total,
-            payment_method=payment,
-            payment_status='pending' if payment == 'Cash on Delivery' else 'demo_paid',
-            status='Pending'
-        )
-        db.session.add(order)
-        db.session.flush()
-
-        for item in items:
-            oi = OrderItem(
-                order_id=order.id,
-                product_id=item.product_id,
-                product_name=item.product.name if item.product else 'Item',
-                size=item.variant.size if item.variant else (item.custom_name and 'Custom') or 'N/A',
-                quantity=item.quantity,
-                unit_price=item.product.price if item.product else 0,
-                custom_name=item.custom_name,
-                custom_number=item.custom_number,
-                is_custom=item.is_custom
-            )
-            db.session.add(oi)
-            db.session.delete(item)
-
-        db.session.commit()
-        session.pop('cart_id', None)
-        flash(f'Order placed successfully! Order number: {order.order_number}', 'success')
-        return render_template('checkout_success.html', order=order)
-
-    return render_template('checkout.html', items=items, subtotal=subtotal, delivery=delivery, total=total)

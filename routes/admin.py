@@ -203,9 +203,18 @@ def product_edit(id=None):
 @admin_required
 def product_delete(id):
     item = Product.query.get_or_404(id)
-    db.session.delete(item)
-    db.session.commit()
-    flash('Deleted.', 'success')
+    try:
+        from models import CartItem, OrderItem, ProductVariant
+        CartItem.query.filter_by(product_id=item.id).delete()
+        # Keep order history but null product if needed — delete order items for clean delete
+        OrderItem.query.filter_by(product_id=item.id).delete()
+        ProductVariant.query.filter_by(product_id=item.id).delete()
+        db.session.delete(item)
+        db.session.commit()
+        flash('Product deleted.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Could not delete: {e}', 'error')
     return redirect(url_for('admin.products_list'))
 
 # ---------- Players (placeholder ready) ----------
