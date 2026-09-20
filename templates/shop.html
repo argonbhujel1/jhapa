@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Official Store | Jhapa FC{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1>Official Jhapa FC Store</h1><p>Demo products — fully editable via Admin</p></div></div>
+<div class="page-header"><div class="container"><h1>Official Jhapa FC Store</h1><p>Official merchandise</p></div></div>
 <section class="section"><div class="container">
   <div class="tabs">
     <a href="{{ url_for('shop.shop') }}" class="{% if not current_cat %}active{% endif %}">All</a>
@@ -10,7 +10,11 @@
   <div class="grid-4">
     {% for p in products %}
     <a href="{{ url_for('shop.product', slug=p.slug) }}" class="card product-card">
-      <div class="thumb">👕</div>
+      <div class="thumb">
+        {% if p.image %}
+        <img src="{{ p.image|media_url }}" alt="{{ p.name }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+        {% else %}👕{% endif %}
+      </div>
       <div class="body">
         <h3>{{ p.name }}</h3>
         {% if p.is_limited_offer %}<span class="badge badge-demo" style="margin-bottom:6px;">LIMITED OFFER</span>{% endif %}

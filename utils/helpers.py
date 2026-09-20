@@ -58,12 +58,18 @@ def save_upload(file, subfolder=''):
             folder = current_app.config.get('CLOUDINARY_FOLDER', 'jhapa-fc')
             if subfolder:
                 folder = f'{folder}/{subfolder}'
+            # Werkzeug FileStorage — pass stream or file object
+            try:
+                file.stream.seek(0)
+            except Exception:
+                pass
             result = cloudinary.uploader.upload(
                 file,
                 folder=folder,
                 resource_type='image',
                 overwrite=False,
             )
+            print('Cloudinary OK:', (result.get('secure_url') or '')[:80])
             return result.get('secure_url') or result.get('url')
         except Exception as e:
             print('Cloudinary upload error:', e)

@@ -27,7 +27,7 @@ class ClubInfo(db.Model):
     key = db.Column(db.String(50), unique=True, nullable=False)
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
-    image = db.Column(db.String(255))
+    image = db.Column(db.Text)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Leadership(db.Model):
@@ -36,7 +36,7 @@ class Leadership(db.Model):
     name = db.Column(db.String(100), nullable=False)
     position = db.Column(db.String(100), nullable=False)
     section = db.Column(db.String(50), default='Executive Board')  # Committee, Executive Board, Coordination & PR, Advisory Council, Technical Team
-    photo = db.Column(db.String(255))
+    photo = db.Column(db.Text)
     bio = db.Column(db.Text)
     order = db.Column(db.Integer, default=0)
     is_published = db.Column(db.Boolean, default=False)
@@ -52,7 +52,7 @@ class Player(db.Model):
     date_of_birth = db.Column(db.Date)
     height = db.Column(db.String(20))
     preferred_foot = db.Column(db.String(20))
-    photo = db.Column(db.String(255))
+    photo = db.Column(db.Text)
     appearances = db.Column(db.Integer, default=0)
     goals = db.Column(db.Integer, default=0)
     assists = db.Column(db.Integer, default=0)
@@ -65,7 +65,7 @@ class Match(db.Model):
     __tablename__ = 'matches'
     id = db.Column(db.Integer, primary_key=True)
     opponent = db.Column(db.String(100), nullable=False)
-    opponent_logo = db.Column(db.String(255))
+    opponent_logo = db.Column(db.Text)
     competition = db.Column(db.String(100), default='Nepal Super League')
     venue = db.Column(db.String(150))
     match_date = db.Column(db.DateTime, nullable=False)
@@ -86,7 +86,7 @@ class News(db.Model):
     category = db.Column(db.String(50), default='Club News')  # Match Report, Training, Announcement, Fan Community
     excerpt = db.Column(db.Text)
     content = db.Column(db.Text, nullable=False)
-    featured_image = db.Column(db.String(255))
+    featured_image = db.Column(db.Text)
     author = db.Column(db.String(100), default='Jhapa FC Media')
     publish_date = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='published')  # draft, published
@@ -99,7 +99,7 @@ class GalleryImage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(150))
     category = db.Column(db.String(50), default='Matchday')  # Matchday, Training, Players, Fans, Events, Behind the Scenes
-    image = db.Column(db.String(255), nullable=False)
+    image = db.Column(db.Text, nullable=False)
     caption = db.Column(db.String(255))
     is_demo = db.Column(db.Boolean, default=True)
     is_published = db.Column(db.Boolean, default=True)
@@ -123,7 +123,7 @@ class Product(db.Model):
     compare_price = db.Column(db.Numeric(10, 2))
     category_id = db.Column(db.Integer, db.ForeignKey('product_categories.id'))
     category = db.relationship('ProductCategory', backref='products')
-    image = db.Column(db.String(255))
+    image = db.Column(db.Text)
     stock = db.Column(db.Integer, default=50)
     is_demo = db.Column(db.Boolean, default=True)
     is_active = db.Column(db.Boolean, default=True)
@@ -214,12 +214,12 @@ class Member(db.Model):
     email = db.Column(db.String(120))
     date_of_birth = db.Column(db.Date)
     address = db.Column(db.String(255))
-    profile_photo = db.Column(db.String(255))
+    profile_photo = db.Column(db.Text)
     status = db.Column(db.String(20), default='pending')
     payment_status = db.Column(db.String(20), default='pending')
     payment_method = db.Column(db.String(50))
     payment_reference = db.Column(db.String(100))
-    payment_proof = db.Column(db.String(255))
+    payment_proof = db.Column(db.Text)
     free_tickets = db.Column(db.Integer, default=0)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime)
@@ -241,7 +241,7 @@ class Sponsor(db.Model):
     __tablename__ = 'sponsors'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    logo = db.Column(db.String(255))
+    logo = db.Column(db.Text)
     website = db.Column(db.String(255))
     category = db.Column(db.String(50), default='Official Partner')  # Main Sponsor, Official Partner, Media Partner, Tech Partner
     order = db.Column(db.Integer, default=0)
@@ -279,7 +279,7 @@ class TopPerformer(db.Model):
     category = db.Column(db.String(50), default='Top Scorer')  # Top Scorer, Assists, Clean Sheets, Player of the Month
     value = db.Column(db.Integer, default=0)  # goals / assists / etc
     team = db.Column(db.String(100), default='Jhapa FC')
-    photo = db.Column(db.String(255))
+    photo = db.Column(db.Text)
     order = db.Column(db.Integer, default=0)
     is_published = db.Column(db.Boolean, default=True)
     season = db.Column(db.String(20), default='2025/26')

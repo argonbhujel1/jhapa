@@ -4,8 +4,12 @@
 <div class="page-header"><div class="container"><h1>{{ product.name }}</h1></div></div>
 <section class="section"><div class="container">
   <div class="grid-2" style="align-items:start;">
-    <div class="card" style="height:360px;display:flex;align-items:center;justify-content:center;font-size:6rem;position:relative;">
-      👕
+    <div class="card" style="height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;">
+      {% if product.image %}
+      <img src="{{ product.image|media_url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;">
+      {% else %}
+      <span style="font-size:6rem;">👕</span>
+      {% endif %}
     </div>
     <div>
       {% if product.is_limited_offer %}<span class="badge badge-demo" style="margin-bottom:8px;">LIMITED OFFER</span>{% endif %}
@@ -21,8 +25,10 @@
         <div class="form-group">
           <label>Size</label>
           <select name="size" class="form-control" style="max-width:160px;">
-            {% for v in variants %}<option value="{{ v.size }}">{{ v.size }} {% if v.stock < 5 %}(Low stock){% endif %}</option>{% else %}
-            <option>M</option><option>L</option><option>XL</option>{% endfor %}
+            {% for v in variants %}<option value="{{ v.size }}">{{ v.size }} {% if v.stock < 5 %}(Low stock){% endif %}</option>
+            {% else %}
+            <option>S</option><option>M</option><option>L</option><option>XL</option>
+            {% endfor %}
           </select>
         </div>
         <div class="form-group">

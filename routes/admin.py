@@ -88,6 +88,8 @@ def news_edit(id=None):
         path = resolve_image_input('featured_image', 'image_url', request.form, request.files, 'news')
         if path:
             item.featured_image = path
+        elif request.files.get('featured_image') and request.files['featured_image'].filename:
+            flash('Image upload failed — check Cloudinary keys or use an image URL.', 'error')
         db.session.commit()
         flash('News saved.', 'success')
         return redirect(url_for('admin.news_list'))
@@ -182,6 +184,8 @@ def product_edit(id=None):
         path = resolve_image_input('image', 'image_url', request.form, request.files, 'products')
         if path:
             item.image = path
+        elif request.files.get('image') and request.files['image'].filename:
+            flash('Image upload failed — check Cloudinary keys or use an image URL.', 'error')
         db.session.commit()
         flash('Product saved.', 'success')
         return redirect(url_for('admin.products_list'))

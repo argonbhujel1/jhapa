@@ -73,6 +73,28 @@ def ensure_schema(app):
                         print('Schema: leadership.section')
                     except Exception as e:
                         print('Schema skip:', e)
+
+            # Widen image URL columns (Cloudinary URLs > 255 chars)
+            for table, col in [
+                ('news', 'featured_image'),
+                ('products', 'image'),
+                ('sponsors', 'logo'),
+                ('players', 'photo'),
+                ('leadership', 'photo'),
+                ('gallery_images', 'image'),
+                ('site_settings', 'value'),
+            ]:
+                if table in insp.get_table_names():
+                    try:
+                        with eng.begin() as conn:
+                            dialect = eng.dialect.name
+                            if dialect == 'postgresql':
+                                conn.execute(text(f'ALTER TABLE {table} ALTER COLUMN {col} TYPE TEXT'))
+                            # sqlite ignores type changes
+                        print(f'Schema: {table}.{col} -> TEXT')
+                    except Exception as e:
+                        print('Schema widen skip:', e)
+
         except Exception as e:
             print('ensure_schema:', e)
 
