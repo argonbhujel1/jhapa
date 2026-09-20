@@ -32,7 +32,9 @@ def index():
 
     latest_news = News.query.filter_by(status='published').order_by(News.publish_date.desc()).limit(4).all()
 
-    featured_products = Product.query.filter_by(is_active=True, is_featured=True).limit(4).all()
+    featured_products = Product.query.filter_by(is_featured=True, is_active=True).limit(4).all()
+    if not featured_products:
+        featured_products = Product.query.filter_by(is_active=True).order_by(Product.id.desc()).limit(4).all()
 
     about = ClubInfo.query.filter_by(key='about_story').first()
     vision = ClubInfo.query.filter_by(key='vision').first()
