@@ -2166,3 +2166,28 @@ html:not([data-theme]) body {
   height: 36px !important;
 }
 .jp-side-logo { display: none !important; }
+
+
+/* Final jersey print: bigger name, tall number to BAM line, text only */
+.jp-name {
+  top: 18% !important;
+  font-size: clamp(1.15rem, 4.2vw, 1.55rem) !important;
+  letter-spacing: 0.18em !important;
+  width: 78% !important;
+}
+.jp-number {
+  top: 28% !important;
+  font-size: clamp(5rem, 22vw, 7.5rem) !important;
+  line-height: 0.9 !important;
+}
+.jp-bam {
+  top: 78% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+.jp-bam span {
+  font-size: clamp(0.6rem, 2.2vw, 0.8rem) !important;
+  letter-spacing: 0.28em !important;
+  opacity: 0.95;
+}
+.jp-bam-logo { display: none !important; }
