@@ -1787,3 +1787,12 @@ html:not([data-theme]) body {
   height: 100%;
   object-fit: cover;
 }
+
+.pre-line-member {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 2px;
+  color: #fde047;
+  text-shadow: 0 0 20px rgba(253, 224, 71, 0.5);
+}

@@ -19,6 +19,7 @@
   <script>
     (function(){
       var t = localStorage.getItem('jhapa-theme') || 'dark';
+      if (t === 'light') t = 'dark';
       document.documentElement.setAttribute('data-theme', t);
     })();
   </script>
@@ -38,8 +39,11 @@
         <span class="elephant">🐘</span>
         {% endif %}
       </div>
-      <p class="pre-line-1">ELEPHANTS ARE MARCHING</p>
-      <p class="pre-line-2">AAYO JHAPALI</p>
+      <p class="pre-line-1" id="preLine1">ELEPHANTS ARE MARCHING</p>
+      <p class="pre-line-2" id="preLine2">AAYO JHAPALI</p>
+      {% if session.get('member_name') %}
+      <p class="pre-line-member" id="preMember" data-name="{{ session.get('member_name') }}">WELCOME · {{ session.get('member_name')|upper }}</p>
+      {% endif %}
       <div class="pre-bar"><div class="pre-bar-fill"></div></div>
     </div>
   </div>
@@ -64,13 +68,9 @@
         <a href="{{ url_for('main.news') }}">News</a>
         <a href="{{ url_for('main.gallery') }}">Gallery</a>
         <a href="{{ url_for('shop.shop') }}">Shop</a>
-        <a href="{{ url_for('main.membership') }}">Membership</a>
+        {% if not session.get('membership_number') %}<a href="{{ url_for('main.membership') }}">Membership</a>{% endif %}
         <a href="{{ url_for('main.fans_frame') }}">Fans Frame</a>
         <a href="{{ url_for('main.contact') }}">Contact</a>
-          <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
-          <a href="{{ url_for('main.terms') }}">Terms &amp; Conditions</a>
-          <a href="{{ url_for('main.shipping') }}">Shipping Policy</a>
-          <a href="{{ url_for('main.returns') }}">Return Policy</a>
       </div>
       <div class="nav-actions">
         <button type="button" class="btn btn-ghost theme-toggle" id="themeToggle" title="Toggle light/dark" aria-label="Theme">
@@ -128,15 +128,16 @@
           <a href="{{ url_for('main.matches') }}">Matches</a>
           <a href="{{ url_for('main.news') }}">News</a>
           <a href="{{ url_for('shop.shop') }}">Shop</a>
-          <a href="{{ url_for('main.membership') }}">Membership</a>
+          {% if not session.get('membership_number') %}<a href="{{ url_for('main.membership') }}">Membership</a>{% endif %}
         <a href="{{ url_for('main.fans_frame') }}">Fans Frame</a>
         </div>
         <div>
           <h4>Support</h4>
           <a href="{{ url_for('main.contact') }}">Contact</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms &amp; Conditions</a>
-          <a href="#">Shipping Policy</a>
+          <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+          <a href="{{ url_for('main.terms') }}">Terms &amp; Conditions</a>
+          <a href="{{ url_for('main.shipping') }}">Shipping Policy</a>
+          <a href="{{ url_for('main.returns') }}">Return Policy</a>
           <a href="#">Return Policy</a>
         </div>
         <div>
@@ -196,14 +197,27 @@
 (function(){
   var pre = document.getElementById('sitePreloader');
   if (!pre) return;
-  // Only on first open of this browser session
+  // Member: always show welcome once after join
+  var memberEl = document.getElementById('preMember');
+  var forceWelcome = false;
   try {
-    if (sessionStorage.getItem('jhapa_loaded') === '1') {
+    if (memberEl && sessionStorage.getItem('jhapa_member_welcome') !== '1') {
+      forceWelcome = true;
+    }
+    if (!forceWelcome && sessionStorage.getItem('jhapa_loaded') === '1') {
       pre.remove();
       return;
     }
   } catch(e) {}
   pre.style.display = 'flex';
+  if (memberEl) {
+    var n = memberEl.getAttribute('data-name') || '';
+    var l1 = document.getElementById('preLine1');
+    var l2 = document.getElementById('preLine2');
+    if (l1) l1.textContent = 'WELCOME · ' + (n ? n.toUpperCase() : 'MEMBER');
+    if (l2) l2.textContent = 'AAYO JHAPALI';
+    try { sessionStorage.setItem('jhapa_member_welcome', '1'); } catch(e) {}
+  }
   // Show uploaded loading image fully (any ratio)
   var bg = pre.getAttribute('data-bg');
   var bgEl = document.getElementById('preloaderBgImg');

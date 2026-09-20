@@ -304,17 +304,26 @@ def sitemap():
         url_for('shop.shop', _external=True),
         url_for('main.membership', _external=True),
         url_for('main.contact', _external=True),
+        url_for('main.fans_frame', _external=True),
+        url_for('main.privacy', _external=True),
+        url_for('main.terms', _external=True),
+        url_for('main.shipping', _external=True),
+        url_for('main.returns', _external=True),
     ]
+    for a in News.query.filter_by(status='published').limit(100).all():
+        pages.append(url_for('main.news_detail', slug=a.slug, _external=True))
+    for p in Product.query.filter_by(is_active=True).limit(100).all():
+        pages.append(url_for('shop.product', slug=p.slug, _external=True))
+    for pl in Player.query.filter_by(is_published=True).limit(50).all():
+        pages.append(url_for('main.player', id=pl.id, _external=True))
     xml = ['<?xml version="1.0" encoding="UTF-8"?>',
            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     for p in pages:
-        xml.append(f'<url><loc>{p}</loc><changefreq>weekly</changefreq></url>')
+        xml.append(f'<url><loc>{p}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>')
     xml.append('</urlset>')
     resp = make_response('\n'.join(xml))
-    resp.headers['Content-Type'] = 'application/xml'
+    resp.headers['Content-Type'] = 'application/xml; charset=utf-8'
     return resp
-
-
 
 @main_bp.route('/privacy')
 def privacy():
@@ -335,3 +344,17 @@ def returns():
 @main_bp.route('/fans-frame')
 def fans_frame():
     return render_template('fans-frame.html')
+
+
+@main_bp.route('/robots.txt')
+def robots_txt():
+    from flask import Response
+    host = request.host_url.rstrip('/')
+    body = f"""User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: {host}/sitemap.xml
+"""
+    return Response(body, mimetype='text/plain')

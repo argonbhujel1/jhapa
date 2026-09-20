@@ -4,7 +4,13 @@
 <section class="section"><div class="container">
   <h2 class="section-title">Your Digital Membership Card</h2>
   <div class="digital-card">
-    <div class="crest">🐘</div>
+    <div class="crest">
+      {% if club_logo %}
+      <img src="{{ club_logo|media_url }}" alt="Jhapa FC" style="width:72px;height:72px;object-fit:contain;border-radius:50%;background:#fff;padding:4px;">
+      {% else %}
+      <span style="font-size:2.5rem;">⚽</span>
+      {% endif %}
+    </div>
     <h3>JHAPA FC</h3>
     <p class="member-no">{{ member.membership_number }}</p>
     <div class="label">Official Member</div>
@@ -22,7 +28,7 @@
     {% if member.payment_status == 'submitted' or member.status == 'pending' %}
     <p style="margin-top:12px;font-size:0.8rem;color:var(--warning);">⏳ Awaiting admin payment verification</p>
     {% endif %}
-    <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);">THE ELEPHANTS OF JHAPA</p>
+    <p style="margin-top:16px;font-size:0.75rem;color:var(--text-muted);">THE ELEPHANTS OF JHAPA · AAYO JHAPALI</p>
   </div>
   <div class="text-center mt-3"><a href="{{ url_for('main.index') }}" class="btn btn-outline">Back to Home</a></div>
 </div></section>

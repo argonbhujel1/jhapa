@@ -7,17 +7,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  const themes = ['dark', 'light', 'gold'];
+  // Themes: dark (away) <-> gold only — auto every 12s + manual button
+  const themes = ['dark', 'gold'];
+  function applyTheme(next) {
+    if (next === 'light') next = 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('jhapa-theme', next); } catch (e) {}
+  }
   const themeBtn = document.getElementById('themeToggle');
   if (themeBtn) {
     themeBtn.addEventListener('click', function () {
       const cur = document.documentElement.getAttribute('data-theme') || 'dark';
       const idx = themes.indexOf(cur);
-      const next = themes[(idx + 1) % themes.length];
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('jhapa-theme', next); } catch (e) {}
+      applyTheme(themes[(idx + 1) % themes.length]);
     });
   }
+  // Auto switch
+  setInterval(function () {
+    const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    const idx = themes.indexOf(cur);
+    applyTheme(themes[(idx + 1) % themes.length]);
+  }, 12000);
 
   const chatToggle = document.getElementById('chatToggle');
   const chatPanel = document.getElementById('chatPanel');
@@ -47,10 +57,10 @@ document.addEventListener('DOMContentLoaded', function () {
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        appendMsg(data.reply || 'Jhapali is thinking… try again.', 'bot');
+        appendMsg(data.reply || 'Jhapali is thinking…', 'bot');
       })
       .catch(function () {
-        appendMsg('Jhapali temporarily offline. Please try again.', 'bot');
+        appendMsg('Jhapali temporarily offline.', 'bot');
       });
   }
 

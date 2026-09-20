@@ -1,49 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Leadership | Jhapa FC{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1>Club Leadership</h1><p>The People Behind JHAPA FC</p></div></div>
-<section class="section"><div class="container">
-  <div class="tabs">
-    {% for s in sections %}
-    <a href="?section={{ s }}" class="{% if current_section == s %}active{% endif %}">{{ s }}</a>
-    {% endfor %}
+<div class="page-header">
+  <div class="container">
+    <h1>CLUB LEADERSHIP</h1>
+    <p>The People Behind The Elephants</p>
   </div>
-  {% if leaders %}
-    {% if current_section == 'All' %}
+</div>
+<section class="section">
+  <div class="container">
+    {% if leaders %}
       {% set ns = namespace(prev='') %}
       {% for l in leaders %}
-        {% if l.section != ns.prev %}
+        {% set sec = l.section or 'Leadership' %}
+        {% if sec != ns.prev %}
           {% if ns.prev %}</div>{% endif %}
-          <h2 class="section-title" style="font-size:1.15rem;margin:28px 0 16px;text-align:left;">{{ l.section or 'Other' }}</h2>
-          <div class="grid-4">
-          {% set ns.prev = l.section %}
+          <div class="squad-heading-row" style="margin:32px 0 20px;">
+            <h2 class="squad-heading">{{ sec|upper }}</h2>
+            <span class="squad-line"></span>
+          </div>
+          <div class="squad-shield-grid">
+          {% set ns.prev = sec %}
         {% endif %}
-        <a href="{{ url_for('main.leadership_detail', id=l.id) }}" class="card player-card leadership-card {% if l.section == 'Technical Team' %}tech-glow{% endif %}">
-          <div class="avatar">{% if l.photo %}<img src="{{ l.photo|media_url }}" alt="{{ l.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">{% else %}{% if l.section == 'Technical Team' %}💻{% else %}👤{% endif %}{% endif %}</div>
-          <h4>{{ l.name }}</h4>
-          <p class="text-muted" style="font-size:0.8rem;">{{ l.position }}</p>
-          {% if l.section %}<span class="badge section-badge">{{ l.section }}</span>{% endif %}
+        <a href="{{ url_for('main.leadership_detail', id=l.id) }}" class="shield-card {% if l.section == 'Technical Team' %}tech-glow{% endif %}">
+          <div class="shield-inner">
+            <div class="shield-photo">
+              {% if l.photo %}
+              <img src="{{ l.photo|media_url }}" alt="{{ l.name }}" loading="lazy">
+              {% else %}
+              <div class="shield-ph">{% if l.section == 'Technical Team' %}💻{% else %}👤{% endif %}</div>
+              {% endif %}
+            </div>
+            <div class="shield-info">
+              <div class="shield-name">{{ (l.name or '')|upper }}</div>
+              <div class="shield-role">{{ l.position or '' }}</div>
+            </div>
+          </div>
         </a>
       {% endfor %}
       {% if leaders %}</div>{% endif %}
     {% else %}
-    <div class="grid-4">
-      {% for l in leaders %}
-      <a href="{{ url_for('main.leadership_detail', id=l.id) }}" class="card player-card leadership-card {% if l.section == 'Technical Team' %}tech-glow{% endif %}">
-        <div class="avatar">{% if l.photo %}<img src="{{ l.photo|media_url }}" alt="{{ l.name }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">{% else %}{% if l.section == 'Technical Team' %}💻{% else %}👤{% endif %}{% endif %}</div>
-        <h4>{{ l.name }}</h4>
-        <p class="text-muted" style="font-size:0.8rem;">{{ l.position }}</p>
-        {% if l.section %}<span class="badge section-badge">{{ l.section }}</span>{% endif %}
-      </a>
-      {% endfor %}
+    <div class="coming-soon">
+      <div class="icon">👔</div>
+      <h2>OFFICIAL INFORMATION COMING SOON</h2>
+      <p>Leadership profiles will appear when published from Admin.</p>
     </div>
     {% endif %}
-  {% else %}
-  <div class="coming-soon">
-    <div class="icon">👔</div>
-    <h2>OFFICIAL INFORMATION COMING SOON</h2>
-    <p>Leadership will appear when published from Admin → Leadership.</p>
   </div>
-  {% endif %}
-</div></section>
+</section>
 {% endblock %}

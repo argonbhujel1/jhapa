@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Admin | Jhapa FC{% endblock %}</title>
+  {% if club_logo %}
+  <link rel="icon" type="image/png" href="{{ club_logo|media_url }}">
+  <link rel="apple-touch-icon" href="{{ club_logo|media_url }}">
+  {% endif %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script>
     (function(){ var t = localStorage.getItem('jhapa-theme') || 'dark'; document.documentElement.setAttribute('data-theme', t); })();
