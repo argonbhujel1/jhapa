@@ -27,8 +27,7 @@ class ClubInfo(db.Model):
     key = db.Column(db.String(50), unique=True, nullable=False)
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
-    image = db.Column(db.Text)  # front
-    image_back = db.Column(db.Text)  # back (custom jersey)
+    image = db.Column(db.Text)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Leadership(db.Model):
@@ -125,6 +124,7 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('product_categories.id'))
     category = db.relationship('ProductCategory', backref='products')
     image = db.Column(db.Text)
+    image_back = db.Column(db.Text)  # jersey back for customizer
     stock = db.Column(db.Integer, default=50)
     is_demo = db.Column(db.Boolean, default=True)
     is_active = db.Column(db.Boolean, default=True)

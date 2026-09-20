@@ -87,27 +87,29 @@ def custom_jersey():
         flash('Custom jersey added to cart!', 'success')
         return redirect(url_for('shop.cart'))
 
-    # Prefer back photo for custom preview; fallback to front
     jersey_imgs = {'Home': '', 'Away': '', 'Third': ''}
-    for p in Product.query.filter(Product.is_active == True).order_by(Product.id).all():
-        n = (p.name or '').lower()
-        src = p.image_back or p.image
-        if not src:
-            continue
-        if 'home' in n and 'jersey' in n:
-            jersey_imgs['Home'] = src
-        elif 'away' in n and 'jersey' in n:
-            jersey_imgs['Away'] = src
-        elif 'third' in n and 'jersey' in n:
-            jersey_imgs['Third'] = src
-        elif 'jersey' in n and not jersey_imgs['Home']:
-            jersey_imgs['Home'] = src
-    if not any(jersey_imgs.values()):
-        anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active == True).first()
-        if anyj:
-            src = anyj.image_back or anyj.image
-            if src:
-                jersey_imgs['Home'] = jersey_imgs['Away'] = jersey_imgs['Third'] = src
+    try:
+        for p in Product.query.filter(Product.is_active == True).order_by(Product.id).all():
+            n = (p.name or '').lower()
+            src = getattr(p, 'image_back', None) or p.image
+            if not src:
+                continue
+            if 'home' in n and 'jersey' in n:
+                jersey_imgs['Home'] = src
+            elif 'away' in n and 'jersey' in n:
+                jersey_imgs['Away'] = src
+            elif 'third' in n and 'jersey' in n:
+                jersey_imgs['Third'] = src
+            elif 'jersey' in n and not jersey_imgs['Home']:
+                jersey_imgs['Home'] = src
+        if not any(jersey_imgs.values()):
+            anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active == True).first()
+            if anyj:
+                src = getattr(anyj, 'image_back', None) or anyj.image
+                if src:
+                    jersey_imgs['Home'] = jersey_imgs['Away'] = jersey_imgs['Third'] = src
+    except Exception as e:
+        print('custom_jersey image load:', e)
     return render_template('custom-jersey.html', base_price=base_price, jersey_imgs=jersey_imgs)
 
 @shop_bp.route('/cart')
