@@ -2145,3 +2145,24 @@ html:not([data-theme]) body {
   .jp-bam { top: 66%; }
   .jp-side-logo { width: 26px; height: 26px; right: 12%; }
 }
+
+
+/* Jersey print tune — name higher & larger, number bigger, no club side logo */
+.jp-name {
+  top: 22% !important;
+  font-size: clamp(0.95rem, 3.5vw, 1.25rem) !important;
+  letter-spacing: 0.2em !important;
+  font-weight: 800 !important;
+}
+.jp-number {
+  top: 32% !important;
+  font-size: clamp(4.2rem, 18vw, 6.2rem) !important;
+}
+.jp-bam {
+  top: 72% !important;
+}
+.jp-bam-logo {
+  width: 36px !important;
+  height: 36px !important;
+}
+.jp-side-logo { display: none !important; }
