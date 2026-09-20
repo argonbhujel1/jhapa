@@ -1796,3 +1796,161 @@ html:not([data-theme]) body {
   color: #fde047;
   text-shadow: 0 0 20px rgba(253, 224, 71, 0.5);
 }
+
+/* ===== Custom jersey live preview ===== */
+.jersey-preview-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 20px 10px;
+}
+.jersey-kit {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+.jersey-shirt {
+  position: relative;
+  width: 260px;
+  margin: 0 auto;
+  filter: drop-shadow(0 12px 28px rgba(0,0,0,0.45));
+}
+.jersey-body {
+  position: relative;
+  width: 200px;
+  height: 280px;
+  margin: 0 auto;
+  border-radius: 12px 12px 20px 20px;
+  background: linear-gradient(165deg, #0a4a7a 0%, #063a5c 40%, #0c5a8c 100%);
+  border: 2px solid rgba(0, 240, 255, 0.35);
+  overflow: hidden;
+  transition: background 0.35s ease, border-color 0.35s ease;
+}
+.jersey-sleeve {
+  position: absolute;
+  top: 28px;
+  width: 52px;
+  height: 90px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, #0a4a7a, #063a5c);
+  border: 2px solid rgba(0, 240, 255, 0.3);
+  z-index: 0;
+  transition: background 0.35s ease;
+}
+.jersey-sleeve-l { left: 8px; transform: rotate(-12deg); }
+.jersey-sleeve-r { right: 8px; transform: rotate(12deg); }
+.jersey-collar {
+  width: 56px;
+  height: 28px;
+  margin: 8px auto 0;
+  border-radius: 0 0 28px 28px;
+  background: rgba(0,0,0,0.25);
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top: none;
+}
+.jersey-crest {
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.jersey-crest img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+.jersey-number {
+  position: absolute;
+  top: 105px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-display), Impact, sans-serif;
+  font-size: 4.2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0,0,0,0.25), 0 0 20px rgba(0,240,255,0.3);
+  letter-spacing: 2px;
+}
+.jersey-name {
+  position: absolute;
+  top: 195px;
+  left: 8px;
+  right: 8px;
+  text-align: center;
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: #fff;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.jersey-sponsor {
+  position: absolute;
+  bottom: 18px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.7);
+  font-weight: 700;
+}
+.jersey-preview-label {
+  margin-top: 18px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Away kit — white */
+.jersey-kit[data-kit="away"] .jersey-body,
+.jersey-kit[data-kit="away"] .jersey-sleeve {
+  background: linear-gradient(165deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+  border-color: rgba(15, 23, 42, 0.2);
+}
+.jersey-kit[data-kit="away"] .jersey-number,
+.jersey-kit[data-kit="away"] .jersey-name {
+  color: #0c4a6e;
+  text-shadow: none;
+}
+.jersey-kit[data-kit="away"] .jersey-sponsor { color: #64748b; }
+.jersey-kit[data-kit="away"] .jersey-collar {
+  background: #0c4a6e;
+  border-color: #0c4a6e;
+}
+
+/* Third kit — gold */
+.jersey-kit[data-kit="third"] .jersey-body,
+.jersey-kit[data-kit="third"] .jersey-sleeve {
+  background: linear-gradient(165deg, #fbbf24 0%, #d97706 45%, #b45309 100%);
+  border-color: rgba(253, 224, 71, 0.5);
+}
+.jersey-kit[data-kit="third"] .jersey-number,
+.jersey-kit[data-kit="third"] .jersey-name {
+  color: #1c1917;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+}
+.jersey-kit[data-kit="third"] .jersey-sponsor { color: rgba(28,25,23,0.7); }
+.jersey-kit[data-kit="third"] .jersey-collar {
+  background: rgba(0,0,0,0.35);
+}
+
+@media (max-width: 600px) {
+  .jersey-shirt { width: 220px; }
+  .jersey-body { width: 170px; height: 240px; }
+  .jersey-number { font-size: 3.4rem; top: 90px; }
+  .jersey-name { top: 165px; font-size: 0.85rem; }
+}

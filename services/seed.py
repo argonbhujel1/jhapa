@@ -285,17 +285,15 @@ Together we are stronger. One Club. One Pride.'''),
                      bio='Assistant Coach · Jhapa FC.'),
                 dict(name='Min Basnet', position='Goalkeeper Coach', section='Advisory Council', order=12,
                      bio='Goalkeeper Coach · Jhapa FC.'),
-                # BAM Developers — digital technical team
+                # BAM Developers — Technical Team (4 roles)
                 dict(name='BAM Developers', position='Video Editor', section='Technical Team', order=20,
-                     bio='BAM Developers · Official digital partner team — Video Editor for Jhapa FC content.'),
-                dict(name='BAM Developers', position='Assistant Editor', section='Technical Team', order=21,
-                     bio='BAM Developers · Assistant Editor supporting matchday and club media.'),
-                dict(name='BAM Developers', position='UI/UX Designer', section='Technical Team', order=22,
-                     bio='BAM Developers · UI/UX Designer for Jhapa FC digital platforms.'),
-                dict(name='BAM Developers', position='Full Stack Developer', section='Technical Team', order=23,
-                     bio='BAM Developers · Full Stack Developer for website, shop and membership systems.'),
-                dict(name='BAM Developers', position='Full Stack Engineer', section='Technical Team', order=24,
-                     bio='BAM Developers · Full Stack Engineer — architecture, backend and platform reliability.'),
+                     bio='Creates match highlights, fan videos and official club media for Jhapa FC.'),
+                dict(name='BAM Developers', position='UI/UX Designer', section='Technical Team', order=21,
+                     bio='Designs the look and feel of the Jhapa FC website, app screens and fan experience.'),
+                dict(name='BAM Developers', position='Full Stack Developer', section='Technical Team', order=22,
+                     bio='Builds website features: shop, membership, news, gallery and admin tools.'),
+                dict(name='BAM Developers', position='Full Stack Engineer', section='Technical Team', order=23,
+                     bio='Owns platform architecture, performance, security and deployments (Neon, Cloudinary, Vercel).'),
             ]
             for L in leaders:
                 existing = Leadership.query.filter_by(name=L['name'], position=L['position']).first()
@@ -324,6 +322,9 @@ Together we are stronger. One Club. One Pride.'''),
                 c.section = 'Advisory Council'
                 c.position = pos
                 c.is_published = True
+        # Keep only 4 BAM technical roles
+        for extra in Leadership.query.filter_by(section='Technical Team', position='Assistant Editor').all():
+            db.session.delete(extra)
 
 
         db.session.commit()

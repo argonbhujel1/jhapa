@@ -200,6 +200,10 @@ def create_app():
             return p
         return '/uploads/' + p.lstrip('/')
 
+    @app.before_request
+    def make_session_permanent():
+        session.permanent = True
+
     app.register_blueprint(main_bp)
     app.register_blueprint(shop_bp)
     app.register_blueprint(admin_bp)

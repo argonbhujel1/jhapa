@@ -203,24 +203,36 @@ def membership_register():
                 member.payment_proof = path
         db.session.add(member)
         db.session.commit()
+        session.permanent = True
         session['member_id'] = member.id
+        session['membership_number'] = member.membership_number
+        session['member_name'] = member.full_name
         if is_free:
             flash('Welcome! Your FREE Fan membership is active.', 'success')
         else:
             flash('Registration received. Admin will verify your payment shortly.', 'success')
-        return redirect(url_for('main.membership_card'))
+        return redirect(url_for('main.membership_card', number=member.membership_number))
 
     return render_template('membership-register.html', plans=plans, selected=selected)
 
 @main_bp.route('/membership/card')
-def membership_card():
-    mid = session.get('member_id')
-    if not mid:
+@main_bp.route('/membership/card/<number>')
+def membership_card(number=None):
+    member = None
+    if number:
+        member = Member.query.filter_by(membership_number=number).first()
+    if not member and session.get('member_id'):
+        member = Member.query.get(session.get('member_id'))
+    if not member and session.get('membership_number'):
+        member = Member.query.filter_by(membership_number=session.get('membership_number')).first()
+    if not member:
         flash('Please complete registration first.', 'info')
         return redirect(url_for('main.membership'))
-    member = Member.query.get(mid)
-    if not member:
-        return redirect(url_for('main.membership'))
+    # Refresh session so nav shows My Membership
+    session.permanent = True
+    session['member_id'] = member.id
+    session['membership_number'] = member.membership_number
+    session['member_name'] = member.full_name
     return render_template('membership-card.html', member=member)
 
 @main_bp.route('/contact', methods=['GET', 'POST'])

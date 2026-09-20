@@ -1,40 +1,116 @@
 {% extends "base.html" %}
 {% block title %}Make Your Own Jersey | Jhapa FC{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1>Make Your Own Jhapa FC Jersey</h1><p>Personalise with your name & number</p></div></div>
-<section class="section"><div class="container">
-  <div class="grid-2" style="align-items:start;">
-    <div class="card" style="padding:40px;text-align:center;">
-      <div style="font-size:5rem;margin-bottom:16px;">👕</div>
-      <p style="color:var(--primary-light);font-weight:700;" id="previewName">YOUR NAME</p>
-      <p style="font-size:2.5rem;font-weight:900;color:#fff;" id="previewNum">10</p>
-      <p class="text-muted mt-2">Live preview</p>
-    </div>
-    <div>
-      <form method="POST">
-        <div class="form-group"><label>Jersey Type</label>
-          <select name="jersey_type" class="form-control"><option>Home</option><option>Away</option><option>Third</option></select>
+<div class="page-header">
+  <div class="container">
+    <h1>Make Your Own Jhapa FC Jersey</h1>
+    <p>Personalise with your name &amp; number — live preview</p>
+  </div>
+</div>
+<section class="section">
+  <div class="container">
+    <div class="grid-2 jersey-builder" style="align-items:start;gap:32px;">
+      <!-- Live jersey preview -->
+      <div class="jersey-preview-wrap">
+        <div class="jersey-kit" id="jerseyKit" data-kit="home">
+          <div class="jersey-shirt">
+            <div class="jersey-sleeve jersey-sleeve-l"></div>
+            <div class="jersey-sleeve jersey-sleeve-r"></div>
+            <div class="jersey-body">
+              <div class="jersey-collar"></div>
+              <div class="jersey-crest">
+                {% if club_logo %}
+                <img src="{{ club_logo|media_url }}" alt="Jhapa FC">
+                {% else %}
+                <span>🐘</span>
+                {% endif %}
+              </div>
+              <div class="jersey-number" id="previewNum">10</div>
+              <div class="jersey-name" id="previewName">YOUR NAME</div>
+              <div class="jersey-sponsor">JHAPA FC</div>
+            </div>
+          </div>
+          <p class="jersey-preview-label">Live preview · <span id="kitLabel">Home</span> kit</p>
         </div>
-        <div class="form-group"><label>Size</label>
-          <select name="size" class="form-control"><option>S</option><option selected>M</option><option>L</option><option>XL</option><option>XXL</option></select>
-        </div>
-        <div class="form-group"><label>Player Name (max 12)</label>
-          <input type="text" name="player_name" class="form-control" maxlength="12" placeholder="YOUR NAME" id="nameInput">
-        </div>
-        <div class="form-group"><label>Jersey Number</label>
-          <input type="text" name="jersey_number" class="form-control" maxlength="2" placeholder="10" id="numInput">
-        </div>
-        <div class="form-group"><label>Quantity</label>
-          <input type="number" name="quantity" value="1" min="1" max="5" class="form-control" style="max-width:100px;">
-        </div>
-        <p style="font-size:1.3rem;font-weight:700;color:var(--primary-light);margin:16px 0;">Rs. {{ "{:,.0f}".format(base_price) }} <small style="font-size:0.8rem;color:var(--text-muted);">per jersey</small></p>
-        <button type="submit" class="btn btn-primary">Add to Cart</button>
-      </form>
+      </div>
+
+      <!-- Form -->
+      <div>
+        <form method="POST" class="card" style="padding:28px;">
+          <div class="form-group">
+            <label>Jersey Type</label>
+            <select name="jersey_type" class="form-control" id="kitSelect">
+              <option value="Home">Home (Blue)</option>
+              <option value="Away">Away (White)</option>
+              <option value="Third">Third (Gold)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Size</label>
+            <select name="size" class="form-control">
+              <option>S</option>
+              <option selected>M</option>
+              <option>L</option>
+              <option>XL</option>
+              <option>XXL</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Player Name (max 12 letters)</label>
+            <input type="text" name="player_name" class="form-control" maxlength="12"
+                   placeholder="YOUR NAME" id="nameInput" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Jersey Number (0–99)</label>
+            <input type="text" name="jersey_number" class="form-control" maxlength="2"
+                   placeholder="10" id="numInput" inputmode="numeric" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" name="quantity" value="1" min="1" max="5" class="form-control" style="max-width:100px;">
+          </div>
+          <p style="font-size:1.3rem;font-weight:700;color:var(--neon);margin:16px 0;">
+            Rs. {{ "{:,.0f}".format(base_price) }}
+            <small style="font-size:0.8rem;color:var(--text-muted);">per jersey</small>
+          </p>
+          <button type="submit" class="btn btn-primary">Add Custom Jersey to Cart</button>
+          <a href="{{ url_for('shop.shop') }}" class="btn btn-outline" style="margin-left:8px;">Back to Store</a>
+        </form>
+      </div>
     </div>
   </div>
-</div></section>
+</section>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-document.getElementById('nameInput').addEventListener('input', e => document.getElementById('previewName').textContent = e.target.value || 'YOUR NAME');
-document.getElementById('numInput').addEventListener('input', e => document.getElementById('previewNum').textContent = e.target.value || '10');
+(function(){
+  var nameEl = document.getElementById('previewName');
+  var numEl = document.getElementById('previewNum');
+  var nameIn = document.getElementById('nameInput');
+  var numIn = document.getElementById('numInput');
+  var kitSel = document.getElementById('kitSelect');
+  var kit = document.getElementById('jerseyKit');
+  var kitLabel = document.getElementById('kitLabel');
+
+  function updName(){
+    var v = (nameIn.value || '').trim().toUpperCase();
+    nameEl.textContent = v || 'YOUR NAME';
+  }
+  function updNum(){
+    var v = (numIn.value || '').replace(/\D/g,'');
+    numIn.value = v;
+    numEl.textContent = v || '10';
+  }
+  function updKit(){
+    var t = (kitSel.value || 'Home').toLowerCase();
+    kit.setAttribute('data-kit', t);
+    kitLabel.textContent = kitSel.value;
+  }
+  nameIn.addEventListener('input', updName);
+  numIn.addEventListener('input', updNum);
+  kitSel.addEventListener('change', updKit);
+  updName(); updNum(); updKit();
+})();
 </script>
 {% endblock %}

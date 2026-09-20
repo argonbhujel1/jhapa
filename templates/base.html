@@ -18,9 +18,16 @@
   {% endif %}
   <script>
     (function(){
+      var themes = ['dark', 'gold'];
       var t = localStorage.getItem('jhapa-theme') || 'dark';
-      if (t === 'light') t = 'dark';
+      if (t !== 'dark' && t !== 'gold') t = 'dark';
       document.documentElement.setAttribute('data-theme', t);
+      setInterval(function(){
+        var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        var next = cur === 'dark' ? 'gold' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('jhapa-theme', next); } catch(e) {}
+      }, 10000);
     })();
   </script>
   {% block extra_css %}{% endblock %}
@@ -73,10 +80,6 @@
         <a href="{{ url_for('main.contact') }}">Contact</a>
       </div>
       <div class="nav-actions">
-        <button type="button" class="btn btn-ghost theme-toggle" id="themeToggle" title="Toggle light/dark" aria-label="Theme">
-          <span class="theme-icon-dark">🌙</span>
-          <span class="theme-icon-light">☀️</span>
-        </button>
         <a href="{{ url_for('shop.cart') }}" class="btn btn-ghost cart-badge" title="Cart">
           🛒
           {% if cart_count > 0 %}<span class="count">{{ cart_count }}</span>{% endif %}
