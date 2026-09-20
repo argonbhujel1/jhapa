@@ -27,7 +27,8 @@ class ClubInfo(db.Model):
     key = db.Column(db.String(50), unique=True, nullable=False)
     title = db.Column(db.String(200))
     content = db.Column(db.Text)
-    image = db.Column(db.Text)
+    image = db.Column(db.Text)  # front
+    image_back = db.Column(db.Text)  # back (custom jersey)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class Leadership(db.Model):

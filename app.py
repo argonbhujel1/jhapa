@@ -95,6 +95,17 @@ def ensure_schema(app):
                     except Exception as e:
                         print('Schema widen skip:', e)
 
+
+            if 'products' in insp.get_table_names():
+                cols = {c['name'] for c in insp.get_columns('products')}
+                if 'image_back' not in cols:
+                    try:
+                        with eng.begin() as conn:
+                            conn.execute(text("ALTER TABLE products ADD COLUMN image_back TEXT"))
+                        print('Schema: products.image_back')
+                    except Exception as e:
+                        print('Schema image_back skip:', e)
+
         except Exception as e:
             print('ensure_schema:', e)
 

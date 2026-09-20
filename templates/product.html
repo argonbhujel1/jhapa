@@ -4,11 +4,19 @@
 <div class="page-header"><div class="container"><h1>{{ product.name }}</h1></div></div>
 <section class="section"><div class="container">
   <div class="grid-2" style="align-items:start;">
-    <div class="card" style="height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;">
-      {% if product.image %}
-      <img src="{{ product.image|media_url }}" alt="{{ product.name }}" style="width:100%;height:100%;object-fit:cover;">
-      {% else %}
-      <span style="font-size:6rem;">👕</span>
+    <div>
+      <div class="card" style="height:360px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:0;margin-bottom:12px;">
+        {% if product.image %}
+        <img src="{{ product.image|media_url }}" alt="{{ product.name }} front" style="width:100%;height:100%;object-fit:cover;" id="prodMainImg">
+        {% else %}
+        <span style="font-size:6rem;">👕</span>
+        {% endif %}
+      </div>
+      {% if product.image_back %}
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('prodMainImg').src='{{ product.image|media_url }}'">Front</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('prodMainImg').src='{{ product.image_back|media_url }}'">Back</button>
+      </div>
       {% endif %}
     </div>
     <div>

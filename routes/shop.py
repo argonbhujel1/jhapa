@@ -87,25 +87,27 @@ def custom_jersey():
         flash('Custom jersey added to cart!', 'success')
         return redirect(url_for('shop.cart'))
 
-    # Official store jersey photos for live back preview
+    # Prefer back photo for custom preview; fallback to front
     jersey_imgs = {'Home': '', 'Away': '', 'Third': ''}
-    for p in Product.query.filter(Product.is_active==True).order_by(Product.id).all():
+    for p in Product.query.filter(Product.is_active == True).order_by(Product.id).all():
         n = (p.name or '').lower()
-        if not p.image:
+        src = p.image_back or p.image
+        if not src:
             continue
         if 'home' in n and 'jersey' in n:
-            jersey_imgs['Home'] = p.image
+            jersey_imgs['Home'] = src
         elif 'away' in n and 'jersey' in n:
-            jersey_imgs['Away'] = p.image
+            jersey_imgs['Away'] = src
         elif 'third' in n and 'jersey' in n:
-            jersey_imgs['Third'] = p.image
+            jersey_imgs['Third'] = src
         elif 'jersey' in n and not jersey_imgs['Home']:
-            jersey_imgs['Home'] = p.image
-    # Fallback: any product with jersey in name
+            jersey_imgs['Home'] = src
     if not any(jersey_imgs.values()):
-        anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active==True).first()
-        if anyj and anyj.image:
-            jersey_imgs['Home'] = jersey_imgs['Away'] = jersey_imgs['Third'] = anyj.image
+        anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active == True).first()
+        if anyj:
+            src = anyj.image_back or anyj.image
+            if src:
+                jersey_imgs['Home'] = jersey_imgs['Away'] = jersey_imgs['Third'] = src
     return render_template('custom-jersey.html', base_price=base_price, jersey_imgs=jersey_imgs)
 
 @shop_bp.route('/cart')

@@ -29,15 +29,31 @@
     <div class="form-group"><label><input type="checkbox" name="is_active" {% if not item or item.is_active %}checked{% endif %}> Active</label></div>
     <div class="form-group"><label><input type="checkbox" name="is_featured" {% if item and item.is_featured %}checked{% endif %}> Featured</label></div>
     <div class="form-group"><label><input type="checkbox" name="is_limited_offer" {% if item and item.is_limited_offer %}checked{% endif %}> Limited Offer</label></div>
-    <div class="form-group"><label>Product Image (file)</label>
+
+    <hr style="border-color:var(--glass-border);margin:20px 0;">
+    <h3 style="color:var(--neon);font-size:1rem;margin-bottom:12px;">Front photo (store listing)</h3>
+    <div class="form-group"><label>Front image (file)</label>
       <input type="file" name="image" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif">
     </div>
-    <div class="form-group"><label>OR paste image URL</label>
+    <div class="form-group"><label>OR front image URL</label>
       <input type="url" name="image_url" class="form-control" placeholder="https://...">
     </div>
     {% if item and item.image %}
-    <p><img src="{{ item.image|media_url }}" style="max-height:140px;border-radius:8px;" alt=""></p>
+    <p><img src="{{ item.image|media_url }}" style="max-height:120px;border-radius:8px;" alt="Front"></p>
     {% endif %}
+
+    <h3 style="color:var(--neon);font-size:1rem;margin:20px 0 12px;">Back photo (Make Your Own Jersey)</h3>
+    <div class="form-group"><label>Back image (file)</label>
+      <input type="file" name="image_back" class="form-control" accept="image/png,image/jpeg,image/webp,image/gif">
+    </div>
+    <div class="form-group"><label>OR back image URL</label>
+      <input type="url" name="image_back_url" class="form-control" placeholder="https://...">
+    </div>
+    {% if item and item.image_back %}
+    <p><img src="{{ item.image_back|media_url }}" style="max-height:120px;border-radius:8px;" alt="Back"></p>
+    {% endif %}
+    <p class="text-muted" style="font-size:0.8rem;">Jersey products: upload front for the shop grid, back for custom name/number preview.</p>
+
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{{ url_for('admin.products_list') }}" class="btn btn-outline">Back</a>
   </form>

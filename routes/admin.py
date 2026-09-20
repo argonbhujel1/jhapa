@@ -188,7 +188,12 @@ def product_edit(id=None):
         if path:
             item.image = path
         elif request.files.get('image') and request.files['image'].filename:
-            flash('Image upload failed — check Cloudinary keys or use an image URL.', 'error')
+            flash('Front image upload failed — check Cloudinary or use URL.', 'error')
+        path_back = resolve_image_input('image_back', 'image_back_url', request.form, request.files, 'products')
+        if path_back:
+            item.image_back = path_back
+        elif request.files.get('image_back') and request.files['image_back'].filename:
+            flash('Back image upload failed — check Cloudinary or use URL.', 'error')
         db.session.commit()
         flash('Product saved.', 'success')
         return redirect(url_for('admin.products_list'))
