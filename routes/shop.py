@@ -87,7 +87,26 @@ def custom_jersey():
         flash('Custom jersey added to cart!', 'success')
         return redirect(url_for('shop.cart'))
 
-    return render_template('custom-jersey.html', base_price=base_price)
+    # Official store jersey photos for live back preview
+    jersey_imgs = {'Home': '', 'Away': '', 'Third': ''}
+    for p in Product.query.filter(Product.is_active==True).order_by(Product.id).all():
+        n = (p.name or '').lower()
+        if not p.image:
+            continue
+        if 'home' in n and 'jersey' in n:
+            jersey_imgs['Home'] = p.image
+        elif 'away' in n and 'jersey' in n:
+            jersey_imgs['Away'] = p.image
+        elif 'third' in n and 'jersey' in n:
+            jersey_imgs['Third'] = p.image
+        elif 'jersey' in n and not jersey_imgs['Home']:
+            jersey_imgs['Home'] = p.image
+    # Fallback: any product with jersey in name
+    if not any(jersey_imgs.values()):
+        anyj = Product.query.filter(Product.name.ilike('%jersey%'), Product.is_active==True).first()
+        if anyj and anyj.image:
+            jersey_imgs['Home'] = jersey_imgs['Away'] = jersey_imgs['Third'] = anyj.image
+    return render_template('custom-jersey.html', base_price=base_price, jersey_imgs=jersey_imgs)
 
 @shop_bp.route('/cart')
 def cart():

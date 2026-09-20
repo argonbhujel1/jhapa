@@ -4,45 +4,46 @@
 <div class="page-header">
   <div class="container">
     <h1>Make Your Own Jhapa FC Jersey</h1>
-    <p>Personalise with your name &amp; number — live preview</p>
+    <p>Official store jersey · personalise the <strong>back</strong> with your name &amp; number</p>
   </div>
 </div>
 <section class="section">
   <div class="container">
     <div class="grid-2 jersey-builder" style="align-items:start;gap:32px;">
-      <!-- Live jersey preview -->
+
       <div class="jersey-preview-wrap">
-        <div class="jersey-kit" id="jerseyKit" data-kit="home">
-          <div class="jersey-shirt">
-            <div class="jersey-sleeve jersey-sleeve-l"></div>
-            <div class="jersey-sleeve jersey-sleeve-r"></div>
-            <div class="jersey-body">
-              <div class="jersey-collar"></div>
-              <div class="jersey-crest">
-                {% if club_logo %}
-                <img src="{{ club_logo|media_url }}" alt="Jhapa FC">
-                {% else %}
-                <span>🐘</span>
-                {% endif %}
+        <div class="jersey-back" id="jerseyBack"
+             data-home="{{ jersey_imgs.get('Home','')|media_url if jersey_imgs else '' }}"
+             data-away="{{ jersey_imgs.get('Away','')|media_url if jersey_imgs else '' }}"
+             data-third="{{ jersey_imgs.get('Third','')|media_url if jersey_imgs else '' }}">
+          <div class="jersey-back-photo" id="jerseyPhoto">
+            {% if jersey_imgs and jersey_imgs.get('Home') %}
+            <img src="{{ jersey_imgs.get('Home')|media_url }}" alt="Jhapa FC Jersey" id="jerseyImg">
+            {% else %}
+            <div class="jersey-fallback" id="jerseyFallback">
+              <div class="jersey-fallback-body">
+                {% if club_logo %}<img src="{{ club_logo|media_url }}" class="jf-crest" alt="">{% endif %}
               </div>
-              <div class="jersey-number" id="previewNum">10</div>
-              <div class="jersey-name" id="previewName">YOUR NAME</div>
-              <div class="jersey-sponsor">JHAPA FC</div>
+            </div>
+            {% endif %}
+            <div class="jersey-back-overlay">
+              <div class="jersey-back-name site-font" id="previewName">YOUR NAME</div>
+              <div class="jersey-back-number site-font" id="previewNum">10</div>
             </div>
           </div>
-          <p class="jersey-preview-label">Live preview · <span id="kitLabel">Home</span> kit</p>
+          <p class="jersey-preview-label">Back view · live preview · <span id="kitLabel">Home</span></p>
+          <p class="text-muted" style="font-size:0.75rem;margin-top:6px;">Same jersey as Official Store — name &amp; number on the back</p>
         </div>
       </div>
 
-      <!-- Form -->
       <div>
         <form method="POST" class="card" style="padding:28px;">
           <div class="form-group">
             <label>Jersey Type</label>
             <select name="jersey_type" class="form-control" id="kitSelect">
-              <option value="Home">Home (Blue)</option>
-              <option value="Away">Away (White)</option>
-              <option value="Third">Third (Gold)</option>
+              <option value="Home">Home</option>
+              <option value="Away">Away</option>
+              <option value="Third">Third</option>
             </select>
           </div>
           <div class="form-group">
@@ -56,12 +57,12 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Player Name (max 12 letters)</label>
+            <label>Name on jersey (max 12)</label>
             <input type="text" name="player_name" class="form-control" maxlength="12"
                    placeholder="YOUR NAME" id="nameInput" autocomplete="off">
           </div>
           <div class="form-group">
-            <label>Jersey Number (0–99)</label>
+            <label>Number (0–99)</label>
             <input type="text" name="jersey_number" class="form-control" maxlength="2"
                    placeholder="10" id="numInput" inputmode="numeric" autocomplete="off">
           </div>
@@ -90,7 +91,8 @@
   var nameIn = document.getElementById('nameInput');
   var numIn = document.getElementById('numInput');
   var kitSel = document.getElementById('kitSelect');
-  var kit = document.getElementById('jerseyKit');
+  var back = document.getElementById('jerseyBack');
+  var img = document.getElementById('jerseyImg');
   var kitLabel = document.getElementById('kitLabel');
 
   function updName(){
@@ -104,8 +106,12 @@
   }
   function updKit(){
     var t = (kitSel.value || 'Home').toLowerCase();
-    kit.setAttribute('data-kit', t);
     kitLabel.textContent = kitSel.value;
+    var url = back.getAttribute('data-' + t) || back.getAttribute('data-home') || '';
+    if (img && url) {
+      img.src = url;
+      img.style.display = 'block';
+    }
   }
   nameIn.addEventListener('input', updName);
   numIn.addEventListener('input', updNum);
