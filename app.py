@@ -167,6 +167,13 @@ def create_app():
             'loading_bg': get_setting('loading_bg', ''),
             'hero_card': get_setting('hero_card', ''),
             'about_card': get_setting('about_card', ''),
+            'contact_email': get_setting('contact_email', ''),
+            'contact_phone': get_setting('contact_phone', ''),
+            'contact_address': get_setting('contact_address', ''),
+            'social_facebook': get_setting('facebook', ''),
+            'social_instagram': get_setting('instagram', ''),
+            'social_twitter': get_setting('twitter', ''),
+            'social_youtube': get_setting('youtube', ''),
         }
 
     @app.template_filter('media_url')

@@ -68,7 +68,7 @@
     {% for m in results %}
     <a href="{{ url_for('main.match_detail', id=m.id) }}" class="match-row">
       <span class="date">{{ m.match_date.strftime('%d %b %Y') }}</span>
-      <span class="teams">Jhapa FC vs {{ m.opponent }}</span>
+      <span class="teams">Jhapa FC vs {% if m.opponent_logo %}<img src="{{ m.opponent_logo|media_url }}" alt="" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:50%;background:#fff;"> {% endif %}{{ m.opponent }}</span>
       <span class="score">{% if m.home_score is not none %}{{ m.home_score }}-{{ m.away_score }}{% else %}—{% endif %}</span>
       <span class="venue">{{ m.competition }}</span>
     </a>
@@ -77,7 +77,7 @@
     {% for m in upcoming %}
     <a href="{{ url_for('main.match_detail', id=m.id) }}" class="match-row">
       <span class="date">{{ m.match_date.strftime('%d %b %Y') }}</span>
-      <span class="teams">Jhapa FC vs {{ m.opponent }}</span>
+      <span class="teams">Jhapa FC vs {% if m.opponent_logo %}<img src="{{ m.opponent_logo|media_url }}" alt="" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:6px;border-radius:50%;background:#fff;"> {% endif %}{{ m.opponent }}</span>
       <span class="venue">{{ m.venue or 'TBC' }} · {{ m.match_date.strftime('%H:%M') }}</span>
     </a>
     {% else %}<p class="text-muted">Fixtures will be updated soon.</p>{% endfor %}

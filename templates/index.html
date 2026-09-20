@@ -43,7 +43,7 @@
         </div>
         <div class="vs-badge">VS</div>
         <div class="team-box">
-          <div class="crest">⚽</div>
+          <div class="crest">{% if next_match.opponent_logo %}<img src="{{ next_match.opponent_logo|media_url }}" alt="{{ next_match.opponent }}" style="width:100%;height:100%;object-fit:contain;border-radius:50%;background:#fff;">{% else %}⚽{% endif %}</div>
           <h3>{{ next_match.opponent }}</h3>
         </div>
       </div>

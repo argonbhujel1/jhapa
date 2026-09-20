@@ -134,6 +134,9 @@ def match_edit(id=None):
         item.away_score = int(as_) if as_ not in (None, '') else None
         item.is_demo = False
         item.is_published = request.form.get('is_published') == 'on'
+        path = resolve_image_input('opponent_logo', 'opponent_logo_url', request.form, request.files, 'sponsors')
+        if path:
+            item.opponent_logo = path
         db.session.commit()
         flash('Match saved.', 'success')
         return redirect(url_for('admin.matches_list'))

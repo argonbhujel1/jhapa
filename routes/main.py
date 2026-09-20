@@ -315,6 +315,23 @@ def sitemap():
     return resp
 
 
+
+@main_bp.route('/privacy')
+def privacy():
+    return render_template('legal.html', page_title='Privacy Policy', page_key='privacy')
+
+@main_bp.route('/terms')
+def terms():
+    return render_template('legal.html', page_title='Terms & Conditions', page_key='terms')
+
+@main_bp.route('/shipping')
+def shipping():
+    return render_template('legal.html', page_title='Shipping Policy', page_key='shipping')
+
+@main_bp.route('/returns')
+def returns():
+    return render_template('legal.html', page_title='Return Policy', page_key='returns')
+
 @main_bp.route('/fans-frame')
 def fans_frame():
     return render_template('fans-frame.html')
