@@ -12,7 +12,7 @@
     {% for img in images %}
     <div class="card gallery-card" style="overflow:hidden;">
       <div style="height:160px;background:linear-gradient(135deg,#1e3a5f,#0f2744);display:flex;align-items:center;justify-content:center;font-size:2.5rem;">
-        {% if img.image %}<img src="/uploads/{{ img.image }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ img.title }}">{% else %}📷{% endif %}
+        {% if img.image %}<img src="{{ img.image|media_url }}" style="width:100%;height:100%;object-fit:cover;" alt="{{ img.title }}">{% else %}📷{% endif %}
       </div>
       <div style="padding:12px;"><p style="font-size:0.85rem;color:#fff;">{{ img.title or img.category }}</p>
         

@@ -13,8 +13,8 @@
   <link rel="canonical" href="{{ request.url }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   {% if club_logo %}
-  <link rel="icon" type="image/png" href="/uploads/{{ club_logo }}">
-  <link rel="apple-touch-icon" href="/uploads/{{ club_logo }}">
+  <link rel="icon" type="image/png" href="{{ club_logo|media_url }}">
+  <link rel="apple-touch-icon" href="{{ club_logo|media_url }}">
   {% endif %}
   <script>
     (function(){
@@ -48,7 +48,7 @@
     <div class="container nav-inner">
       <a href="{{ url_for('main.index') }}" class="logo">
         {% if club_logo %}
-        <img src="/uploads/{{ club_logo }}" alt="Jhapa FC" class="logo-img">
+        <img src="{{ club_logo|media_url }}" alt="Jhapa FC" class="logo-img">
         {% else %}
         <div class="logo-mark">🐘</div>
         {% endif %}

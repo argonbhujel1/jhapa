@@ -259,7 +259,7 @@
     <div class="sponsors-tier sponsors-tier-title">
       {% for s in title_sp %}
       <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-title-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
       </a>
       {% endfor %}
     </div>
@@ -270,12 +270,12 @@
     <div class="sponsors-tier sponsors-tier-principal">
       {% for s in principal %}
       <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
       </a>
       {% endfor %}
       {% for s in main_sp %}
       <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
       </a>
       {% endfor %}
     </div>
@@ -286,12 +286,12 @@
     <div class="sponsors-tier sponsors-tier-official">
       {% for s in official %}
       <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
-        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
       </a>
       {% endfor %}
       {% for s in others %}
       <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
-        {% if s.logo %}<img src="/uploads/{{ s.logo }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
       </a>
       {% endfor %}
     </div>

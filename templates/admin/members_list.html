@@ -44,7 +44,7 @@
             </form>
             {% endif %}
             {% if item.payment_proof %}
-            <a href="/uploads/{{ item.payment_proof }}" target="_blank" class="btn btn-ghost btn-sm">Proof</a>
+            <a href="{{ item.payment_proof|media_url }}" target="_blank" class="btn btn-ghost btn-sm">Proof</a>
             {% endif %}
           </td>
         </tr>

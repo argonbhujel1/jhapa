@@ -151,9 +151,25 @@ def create_app():
     def media_url_filter(path):
         if not path:
             return ''
-        if str(path).startswith('http://') or str(path).startswith('https://'):
-            return path
-        return '/uploads/' + str(path).lstrip('/')
+        p = str(path).strip()
+        # Full Cloudinary / external URL already
+        if p.startswith('http://') or p.startswith('https://') or p.startswith('//'):
+            return p
+        # Broken stored form: https:/res.cloudinary... (missing slash)
+        if p.startswith('https:/') and not p.startswith('https://'):
+            return 'https://' + p[7:]
+        if p.startswith('http:/') and not p.startswith('http://'):
+            return 'http://' + p[6:]
+        # Accidentally stored with /uploads/https://...
+        if '/uploads/http' in p:
+            idx = p.find('http')
+            return p[idx:]
+        if p.startswith('/uploads/'):
+            rest = p[len('/uploads/'):]
+            if rest.startswith('http'):
+                return rest
+            return p
+        return '/uploads/' + p.lstrip('/')
 
     app.register_blueprint(main_bp)
     app.register_blueprint(shop_bp)

@@ -35,7 +35,7 @@
         <tr>
           <td>
             {% if item.logo %}
-            <img src="/uploads/{{ item.logo }}" alt="" style="height:40px;width:auto;border-radius:6px;background:#fff;padding:2px;">
+            <img src="{{ item.logo|media_url }}" alt="" style="height:40px;width:auto;border-radius:6px;background:#fff;padding:2px;">
             {% else %}—{% endif %}
           </td>
           <td>{{ item.name }}</td>

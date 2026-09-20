@@ -18,7 +18,7 @@
 <div class="form-group"><label><input type="checkbox" name="is_published" {% if not item or item.is_published %}checked{% endif %}> Published</label></div>
 <div class="form-group"><label>Photo — choose file</label><input type="file" name="photo" class="form-control" accept="image/*"></div>
 <div class="form-group"><label>OR paste photo URL</label><input type="url" name="photo_url" class="form-control" placeholder="https://..."></div>
-{% if item and item.photo %}<p><img src="{% if item.photo.startswith('http') %}{{ item.photo }}{% else %}/uploads/{{ item.photo }}{% endif %}" style="height:80px;border-radius:8px;"></p>{% endif %}
+{% if item and item.photo %}<p><img src="{% if item.photo.startswith('http') %}{{ item.photo }}{% else %}{{ item.photo|media_url }}{% endif %}" style="height:80px;border-radius:8px;"></p>{% endif %}
 <button class="btn btn-primary">Save</button>
 <a href="{{ url_for('admin.performers_list') }}" class="btn btn-outline">Back</a>
 </form>
