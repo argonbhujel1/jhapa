@@ -44,9 +44,28 @@ def logout():
 @admin_bp.route('/')
 @admin_required
 def dashboard():
+    from sqlalchemy import or_, not_
+    # Shop revenue: exclude Cancelled orders
+    shop_rev = db.session.query(db.func.coalesce(db.func.sum(Order.total), 0)).filter(
+        db.func.lower(Order.status) != 'cancelled'
+    ).scalar() or 0
+    # Membership revenue: paid / verified members only
+    mem_rev = 0
+    try:
+        paid = Member.query.filter(
+            db.func.lower(Member.payment_status).in_(['paid', 'verified', 'completed', 'success'])
+        ).all()
+        for m in paid:
+            if m.plan and m.plan.price:
+                mem_rev += float(m.plan.price)
+    except Exception as e:
+        print('mem revenue:', e)
     stats = {
-        'orders': Order.query.count(),
-        'revenue': db.session.query(db.func.sum(Order.total)).scalar() or 0,
+        'orders': Order.query.filter(db.func.lower(Order.status) != 'cancelled').count(),
+        'orders_cancelled': Order.query.filter(db.func.lower(Order.status) == 'cancelled').count(),
+        'revenue': float(shop_rev),
+        'membership_revenue': float(mem_rev),
+        'total_revenue': float(shop_rev) + float(mem_rev),
         'products': Product.query.count(),
         'members': Member.query.count(),
         'news': News.query.count(),
@@ -307,7 +326,35 @@ def orders_list():
 @admin_required
 def order_detail(id):
     order = Order.query.get_or_404(id)
-    return render_template('admin/order_detail.html', order=order)
+    # Official jersey back photos for custom order preview
+    jersey_imgs = {'home': '', 'away': '', 'third': ''}
+    try:
+        for p in Product.query.filter(Product.is_active == True).all():
+            n = (p.name or '').lower()
+            src = getattr(p, 'image_back', None) or p.image
+            if not src:
+                continue
+            if 'third' in n or '3rd' in n:
+                jersey_imgs['third'] = src
+            elif 'away' in n:
+                jersey_imgs['away'] = src
+            elif 'home' in n:
+                jersey_imgs['home'] = src
+            elif ('jersey' in n or 'kit' in n) and not jersey_imgs['home']:
+                jersey_imgs['home'] = src
+    except Exception as e:
+        print('order jersey imgs:', e)
+    # Attach preview image URL per custom line item
+    for oi in order.items:
+        kit = 'home'
+        sz = (oi.size or '').lower()
+        if 'away' in sz:
+            kit = 'away'
+        elif 'third' in sz or '3rd' in sz:
+            kit = 'third'
+        oi._kit = kit
+        oi._jersey_img = jersey_imgs.get(kit) or jersey_imgs.get('home') or ''
+    return render_template('admin/order_detail.html', order=order, jersey_imgs=jersey_imgs)
 
 @admin_bp.route('/orders/<int:id>/status', methods=['POST'])
 @admin_required

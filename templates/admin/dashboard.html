@@ -23,21 +23,28 @@
   <div class="admin-main">
     <h1 style="color:#fff;margin-bottom:24px;">Dashboard</h1>
     <div class="stat-cards">
-      <div class="stat-card"><div class="num">{{ stats.orders }}</div><div class="lbl">Orders</div></div>
-      <div class="stat-card"><div class="num">Rs. {{ "{:,.0f}".format(stats.revenue) }}</div><div class="lbl">Revenue</div></div>
-      <div class="stat-card"><div class="num">{{ stats.products }}</div><div class="lbl">Products</div></div>
+      <div class="stat-card"><div class="num">{{ stats.orders }}</div><div class="lbl">Active Orders</div></div>
+      <div class="stat-card"><div class="num">Rs. {{ "{:,.0f}".format(stats.revenue) }}</div><div class="lbl">Shop Revenue</div></div>
+      <div class="stat-card"><div class="num">Rs. {{ "{:,.0f}".format(stats.membership_revenue) }}</div><div class="lbl">Membership Revenue</div></div>
+      <div class="stat-card"><div class="num">Rs. {{ "{:,.0f}".format(stats.total_revenue) }}</div><div class="lbl">Total Revenue</div></div>
+      <div class="stat-card"><div class="num">{{ stats.orders_cancelled }}</div><div class="lbl">Cancelled (excluded)</div></div>
       <div class="stat-card"><div class="num">{{ stats.members }}</div><div class="lbl">Members</div></div>
-      <div class="stat-card"><div class="num">{{ stats.news }}</div><div class="lbl">News</div></div>
-      <div class="stat-card"><div class="num">{{ stats.matches }}</div><div class="lbl">Matches</div></div>
+      <div class="stat-card"><div class="num">{{ stats.products }}</div><div class="lbl">Products</div></div>
       <div class="stat-card"><div class="num">{{ stats.messages }}</div><div class="lbl">Unread Msgs</div></div>
-      <div class="stat-card"><div class="num">{{ stats.players }}</div><div class="lbl">Players</div></div>
     </div>
+    <p class="text-muted" style="font-size:0.85rem;margin-bottom:16px;">Shop revenue excludes <strong>Cancelled</strong> orders. Membership revenue counts members with payment status paid/verified.</p>
     <h3 style="color:#fff;margin-bottom:12px;">Recent Orders</h3>
     <table class="admin-table">
       <thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
       <tbody>
         {% for o in recent_orders %}
-        <tr><td><a href="{{ url_for('admin.order_detail', id=o.id) }}">{{ o.order_number }}</a></td><td>{{ o.customer_name }}</td><td>Rs. {{ "{:,.0f}".format(o.total) }}</td><td>{{ o.status }}</td><td>{{ o.created_at.strftime('%d %b %Y') }}</td></tr>
+        <tr>
+          <td><a href="{{ url_for('admin.order_detail', id=o.id) }}">{{ o.order_number }}</a></td>
+          <td>{{ o.customer_name }}</td>
+          <td>Rs. {{ "{:,.0f}".format(o.total) }}</td>
+          <td>{{ o.status }}</td>
+          <td>{{ o.created_at.strftime('%d %b %Y') if o.created_at else '—' }}</td>
+        </tr>
         {% else %}<tr><td colspan="5" class="text-muted">No orders yet</td></tr>{% endfor %}
       </tbody>
     </table>
