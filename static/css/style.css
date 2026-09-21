@@ -2436,3 +2436,74 @@ html:not([data-theme]) body {
 .jp-name {
   letter-spacing: 0.32em !important;
 }
+
+
+/* ===== Printed jersey number look (not plain typed text) ===== */
+.jp-number,
+#previewNum {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Black", sans-serif !important;
+  font-weight: 900 !important;
+  font-style: normal !important;
+  letter-spacing: 0.12em !important;
+  line-height: 0.85 !important;
+  /* solid print fill */
+  color: #ffffff !important;
+  /* thick outline = screen-print stroke */
+  -webkit-text-stroke: 3px rgba(15, 23, 42, 0.85);
+  paint-order: stroke fill;
+  /* embossed / printed depth */
+  text-shadow:
+    0 1px 0 rgba(0,0,0,0.35),
+    0 3px 0 rgba(0,0,0,0.2),
+    0 6px 10px rgba(0,0,0,0.25),
+    1px 1px 0 rgba(0,0,0,0.4),
+    -1px 1px 0 rgba(0,0,0,0.25) !important;
+  /* slight horizontal squeeze like kit numbers */
+  transform: translateX(-50%) scaleX(0.92) scaleY(1.05) !important;
+  transform-origin: center center !important;
+  filter: contrast(1.05);
+}
+
+.jp-name,
+#previewName {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Black", sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.28em !important;
+  text-transform: uppercase !important;
+  color: #ffffff !important;
+  -webkit-text-stroke: 1.5px rgba(15, 23, 42, 0.75);
+  paint-order: stroke fill;
+  text-shadow:
+    0 2px 0 rgba(0,0,0,0.35),
+    0 3px 6px rgba(0,0,0,0.3) !important;
+}
+
+/* Away kit — dark print on yellow */
+.jersey-back[data-kit="away"] .jp-number,
+.jersey-back-photo[data-kit="away"] .jp-number,
+.jersey-back[data-kit="away"] #previewNum,
+.jersey-back-photo[data-kit="away"] #previewNum {
+  color: #0c4a6e !important;
+  -webkit-text-stroke: 2px rgba(255,255,255,0.35);
+  text-shadow:
+    0 2px 0 rgba(255,255,255,0.25),
+    0 3px 6px rgba(0,0,0,0.2) !important;
+}
+.jersey-back[data-kit="away"] .jp-name,
+.jersey-back-photo[data-kit="away"] .jp-name {
+  color: #0c4a6e !important;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.3);
+}
+
+/* Third — dark print on white */
+.jersey-back[data-kit="third"] .jp-number,
+.jersey-back-photo[data-kit="third"] .jp-number {
+  color: #0f172a !important;
+  -webkit-text-stroke: 2px rgba(255,255,255,0.4);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.15) !important;
+}
+.jersey-back[data-kit="third"] .jp-name,
+.jersey-back-photo[data-kit="third"] .jp-name {
+  color: #0f172a !important;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.35);
+}

@@ -308,28 +308,81 @@ def chat_api():
             except Exception:
                 pass
 
-            body = json.dumps({
-                'model': model,
-                'messages': [
-                    {'role': 'system', 'content': system},
-                    {'role': 'user', 'content': message},
-                ],
-                'temperature': 0.7,
-                'max_tokens': 600,
-            }).encode('utf-8')
-            req = urllib.request.Request(
-                base + '/chat/completions',
-                data=body,
-                headers={
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + api_key,
-                    'User-Agent': 'JhapaFC-Jhapali/1.0',
-                },
-                method='POST',
-            )
-            ctx = ssl.create_default_context()
-            with urllib.request.urlopen(req, timeout=50, context=ctx) as resp:
-                payload = json.loads(resp.read().decode('utf-8'))
+            def build_body(use_completion_tokens=False, omit_max=False):
+                payload = {
+                    'model': model,
+                    'messages': [
+                        {'role': 'system', 'content': system},
+                        {'role': 'user', 'content': message},
+                    ],
+                }
+                # Some models (o1/o3/gpt-5*) reject temperature or max_tokens
+                mlow = (model or '').lower()
+                is_new = (
+                    'openai.com' in base
+                    or mlow.startswith('gpt-5')
+                    or mlow.startswith('o1')
+                    or mlow.startswith('o3')
+                    or 'luna' in mlow
+                )
+                if not is_new and not omit_max:
+                    payload['temperature'] = 0.7
+                if omit_max:
+                    pass
+                elif use_completion_tokens or is_new:
+                    payload['max_completion_tokens'] = 600
+                else:
+                    payload['max_tokens'] = 600
+                return json.dumps(payload).encode('utf-8')
+
+            def do_request(body_bytes):
+                req = urllib.request.Request(
+                    base + '/chat/completions',
+                    data=body_bytes,
+                    headers={
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + api_key,
+                        'User-Agent': 'JhapaFC-Jhapali/1.0',
+                    },
+                    method='POST',
+                )
+                ctx = ssl.create_default_context()
+                with urllib.request.urlopen(req, timeout=50, context=ctx) as resp:
+                    return json.loads(resp.read().decode('utf-8'))
+
+            payload = None
+            last_err = None
+            for attempt in (
+                {'use_completion_tokens': False, 'omit_max': False},
+                {'use_completion_tokens': True, 'omit_max': False},
+                {'use_completion_tokens': False, 'omit_max': True},
+            ):
+                try:
+                    payload = do_request(build_body(**attempt))
+                    break
+                except urllib.error.HTTPError as e:
+                    err_body = ''
+                    try:
+                        err_body = e.read().decode('utf-8', errors='ignore')[:400]
+                    except Exception:
+                        pass
+                    last_err = (e.code, err_body)
+                    # retry on max_tokens / unsupported param
+                    if e.code == 400 and ('max_tokens' in err_body or 'unsupported' in err_body.lower() or 'temperature' in err_body.lower()):
+                        continue
+                    print('Jhapali HTTPError', e.code, err_body)
+                    return jsonify({
+                        'reply': 'AI error %s. Check Settings API Key / Model. %s' % (e.code, err_body[:150]),
+                        'bot': 'Jhapali',
+                        'ai': False,
+                    })
+            if payload is None:
+                code, err_body = last_err or (400, '')
+                return jsonify({
+                    'reply': 'AI error %s. Check Settings API Key / Model. %s' % (code, (err_body or '')[:150]),
+                    'bot': 'Jhapali',
+                    'ai': False,
+                })
             reply = (payload.get('choices') or [{}])[0].get('message', {}).get('content', '').strip()
             if reply:
                 return jsonify({'reply': reply, 'bot': 'Jhapali', 'ai': True})
