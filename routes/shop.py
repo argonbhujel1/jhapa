@@ -215,49 +215,65 @@ def checkout():
         return redirect(url_for('shop.shop'))
     subtotal, delivery, total = cart_totals(items)
     if request.method == 'POST':
-        name = request.form.get('name', '').strip()
+        # Accept both name and full_name field names
+        name = (request.form.get('name') or request.form.get('full_name') or '').strip()
         phone = request.form.get('phone', '').strip()
         email = request.form.get('email', '').strip()
         address = request.form.get('address', '').strip()
         city = request.form.get('city', '').strip()
         notes = request.form.get('notes', '').strip()
         if not name or not phone or not address:
-            flash('Name, phone and address required.', 'error')
+            flash('Name, phone and address are required.', 'error')
             return render_template(
                 'checkout.html', items=items, subtotal=subtotal, delivery=delivery, total=total
             )
-        order = Order(
-            order_number=generate_order_number(),
-            customer_name=name,
-            customer_email=email or None,
-            customer_phone=phone,
-            address=address,
-            city=city or None,
-            notes=notes or None,
-            subtotal=subtotal,
-            delivery_fee=delivery,
-            total=total,
-            status='pending',
-        )
-        db.session.add(order)
-        db.session.flush()
-        for item in items:
-            if not item.product:
-                continue
-            db.session.add(OrderItem(
-                order_id=order.id,
-                product_id=item.product_id,
-                product_name=item.product.name,
-                unit_price=item.product.price,
-                quantity=item.quantity,
-                size=getattr(item, 'size', None) or (item.variant.size if item.variant else None) or ('Custom' if item.is_custom else 'N/A'),
-                custom_name=item.custom_name,
-                custom_number=item.custom_number,
-                is_custom=item.is_custom,
-            ))
-            db.session.delete(item)
-        db.session.commit()
-        return redirect(url_for('shop.checkout_success', order_number=order.order_number))
+        try:
+            order = Order(
+                order_number=generate_order_number(),
+                customer_name=name[:100],
+                customer_email=(email[:120] if email else None),
+                customer_phone=phone[:20],
+                address=address[:255],
+                city=(city[:50] if city else None),
+                notes=notes or None,
+                subtotal=subtotal,
+                delivery_fee=delivery,
+                total=total,
+                status='Pending',
+                payment_status='pending',
+            )
+            db.session.add(order)
+            db.session.flush()
+            for item in items:
+                if not item.product:
+                    continue
+                size_val = getattr(item, 'size', None)
+                if not size_val and item.variant:
+                    size_val = item.variant.size
+                if not size_val:
+                    size_val = 'Custom' if item.is_custom else 'N/A'
+                db.session.add(OrderItem(
+                    order_id=order.id,
+                    product_id=item.product_id,
+                    product_name=(item.product.name or 'Product')[:150],
+                    unit_price=item.product.price,
+                    quantity=item.quantity or 1,
+                    size=str(size_val)[:40],
+                    custom_name=(item.custom_name or None),
+                    custom_number=(item.custom_number or None),
+                    is_custom=bool(item.is_custom),
+                ))
+                db.session.delete(item)
+            db.session.commit()
+            flash('Order placed successfully!', 'success')
+            return redirect(url_for('shop.checkout_success', order_number=order.order_number))
+        except Exception as e:
+            db.session.rollback()
+            print('checkout error:', e)
+            flash('Could not place order. Please try again. (%s)' % type(e).__name__, 'error')
+            return render_template(
+                'checkout.html', items=items, subtotal=subtotal, delivery=delivery, total=total
+            )
     return render_template(
         'checkout.html', items=items, subtotal=subtotal, delivery=delivery, total=total
     )

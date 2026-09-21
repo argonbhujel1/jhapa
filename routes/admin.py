@@ -313,20 +313,25 @@ def order_detail(id):
 @admin_required
 def order_status(id):
     order = Order.query.get_or_404(id)
-    old_status = order.status
-    new_status = request.form.get('status', order.status)
-    order.status = new_status
-    # Reduce stock when moving TO Confirmed (once)
-    if new_status == 'Confirmed' and old_status != 'Confirmed':
-        for oi in order.items:
-            if oi.product_id:
-                prod = Product.query.get(oi.product_id)
-                if prod and prod.stock is not None:
-                    prod.stock = max(0, int(prod.stock) - int(oi.quantity or 1))
-        flash('Order confirmed. Product stock updated.', 'success')
-    else:
-        flash('Status updated.', 'success')
-    db.session.commit()
+    try:
+        old_status = (order.status or '').strip()
+        new_status = (request.form.get('status') or order.status or 'Pending').strip()
+        order.status = new_status
+        # Reduce stock when moving TO Confirmed (once) — case-insensitive
+        if new_status.lower() == 'confirmed' and old_status.lower() != 'confirmed':
+            for oi in order.items:
+                if oi.product_id:
+                    prod = Product.query.get(oi.product_id)
+                    if prod and prod.stock is not None:
+                        prod.stock = max(0, int(prod.stock or 0) - int(oi.quantity or 1))
+            flash('Order confirmed. Product stock updated.', 'success')
+        else:
+            flash('Order status updated to %s.' % new_status, 'success')
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print('order_status error:', e)
+        flash('Could not update order: %s' % type(e).__name__, 'error')
     return redirect(url_for('admin.order_detail', id=id))
 
 # ---------- Members ----------
