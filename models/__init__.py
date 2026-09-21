@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import deferred
 from flask_login import UserMixin
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -124,7 +125,7 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('product_categories.id'))
     category = db.relationship('ProductCategory', backref='products')
     image = db.Column(db.Text)
-    image_back = db.Column(db.Text)  # jersey back for customizer
+    image_back = deferred(db.Column(db.Text))  # optional; added via ensure_schema
     stock = db.Column(db.Integer, default=50)
     is_demo = db.Column(db.Boolean, default=True)
     is_active = db.Column(db.Boolean, default=True)

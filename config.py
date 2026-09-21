@@ -65,3 +65,6 @@ class Config:
 
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@jhapafc.com')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
+    AI_API_KEY = os.getenv('AI_API_KEY', '')
+    AI_API_BASE = os.getenv('AI_API_BASE', 'https://api.x.ai/v1')
+    AI_MODEL = os.getenv('AI_MODEL', 'grok-2-latest')

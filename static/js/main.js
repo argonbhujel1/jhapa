@@ -30,6 +30,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!msg) return;
     appendMsg(msg, 'user');
     if (chatInput) chatInput.value = '';
+    var typing = document.createElement('div');
+    typing.className = 'chat-msg bot chat-typing';
+    typing.textContent = 'Jhapali is typing…';
+    if (chatMessages) {
+      chatMessages.appendChild(typing);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
     fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,10 +44,14 @@ document.addEventListener('DOMContentLoaded', function () {
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
-        appendMsg(data.reply || 'Jhapali is thinking…', 'bot');
+        if (typing.parentNode) typing.parentNode.removeChild(typing);
+        var text = data.reply || 'Jhapali is thinking…';
+        if (data.ai) text = text;
+        appendMsg(text, 'bot');
       })
       .catch(function () {
-        appendMsg('Jhapali temporarily offline.', 'bot');
+        if (typing.parentNode) typing.parentNode.removeChild(typing);
+        appendMsg('Jhapali temporarily offline. Check Admin → Settings → AI API key.', 'bot');
       });
   }
 

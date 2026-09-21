@@ -226,11 +226,30 @@ def create_app():
     with app.app_context():
         try:
             db.create_all()
+        except Exception as e:
+            print('create_all:', e)
+        try:
             ensure_schema(app)
+        except Exception as e:
+            print('ensure_schema:', e)
+        # Always try add image_back (Neon)
+        try:
+            from sqlalchemy import text, inspect
+            eng = db.engine
+            insp = inspect(eng)
+            if 'products' in insp.get_table_names():
+                cols = {c['name'] for c in insp.get_columns('products')}
+                if 'image_back' not in cols:
+                    with eng.begin() as conn:
+                        conn.execute(text('ALTER TABLE products ADD COLUMN image_back TEXT'))
+                    print('Added products.image_back')
+        except Exception as e:
+            print('image_back alter:', e)
+        try:
             if app.config.get('SEED_ON_START', True):
                 seed_all(app)
         except Exception as e:
-            print('DB init warning:', e)
+            print('seed warning:', e)
 
     return app
 

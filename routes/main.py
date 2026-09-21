@@ -251,55 +251,125 @@ def contact():
         flash('Please fill in all required fields.', 'error')
     return render_template('contact.html')
 
+
 @main_bp.route('/api/chat', methods=['POST'])
 def chat_api():
-    """Jhapali (I$H) — Jhapa FC fan assistant"""
+    """Jhapali (I$H) — real AI when configured, else smart club fallback."""
     data = request.get_json(silent=True) or {}
-    raw = (data.get('message') or '').strip()
-    message = raw.lower()
-
+    message = (data.get('message') or '').strip()
     if not message:
-        return jsonify({'reply': 'Namaste! I am Jhapali (I$H), your Jhapa FC assistant. Ask about matches, shop, membership or the squad.', 'bot': 'Jhapali'})
+        return jsonify({
+            'reply': 'Namaste! I am Jhapali (I$H), official fan assistant of Jhapa FC. Ask me anything about the club.',
+            'bot': 'Jhapali'
+        })
 
-    # Shortcut identity
-    if message in ('who are you', 'your name', 'i$h', 'jhapali', 'bot'):
+    def get_set(key, default=''):
+        try:
+            from models import SiteSetting
+            s = SiteSetting.query.filter_by(key=key).first()
+            return (s.value if s and s.value is not None else default) or default
+        except Exception:
+            return default
+
+    # --- Real AI (OpenAI-compatible: xAI Grok, OpenAI, etc.) ---
+    api_key = (get_set('ai_api_key') or current_app.config.get('AI_API_KEY') or '').strip()
+    ai_on = (get_set('ai_enabled', 'true') or 'true').lower() in ('1', 'true', 'yes', 'on')
+    if api_key and ai_on:
+        try:
+            import json
+            import urllib.request
+            base = (get_set('ai_api_base') or current_app.config.get('AI_API_BASE') or 'https://api.x.ai/v1').rstrip('/')
+            model = get_set('ai_model') or current_app.config.get('AI_MODEL') or 'grok-3-latest'
+            system = get_set('ai_system_prompt') or (
+                'You are Jhapali (shortcut name I$H), the official friendly fan assistant of Jhapa FC, '
+                'a football club from Jhapa, Nepal (nicknamed The Elephants). '
+                'Speak warmly, use short clear answers, mix simple English and light Nepali greetings when natural '
+                '(Namaste, Aayo Jhapali). Help with matches, squad, shop, membership, gallery, contact and club info. '
+                'Do not invent official player stats or unconfirmed results. If unsure, say official info is on the website or coming soon. '
+                'Never claim to be human. Sign off spirit: Elephants are marching.'
+            )
+            # Club context snippet
+            ctx_parts = []
+            try:
+                nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
+                if nm:
+                    ctx_parts.append(f"Next match: vs {nm.opponent} on {nm.match_date.strftime('%d %b %Y %H:%M')} at {nm.venue or 'TBC'}.")
+                email = get_set('contact_email')
+                phone = get_set('contact_phone')
+                if email or phone:
+                    ctx_parts.append(f"Contact: {email or ''} {phone or ''}".strip())
+            except Exception:
+                pass
+            if ctx_parts:
+                system = system + ' Live context: ' + ' '.join(ctx_parts)
+
+            body = json.dumps({
+                'model': model,
+                'messages': [
+                    {'role': 'system', 'content': system},
+                    {'role': 'user', 'content': message},
+                ],
+                'temperature': 0.7,
+                'max_tokens': 500,
+            }).encode('utf-8')
+            req = urllib.request.Request(
+                base + '/chat/completions',
+                data=body,
+                headers={
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + api_key,
+                },
+                method='POST',
+            )
+            with urllib.request.urlopen(req, timeout=45) as resp:
+                payload = json.loads(resp.read().decode('utf-8'))
+            reply = payload['choices'][0]['message']['content'].strip()
+            if reply:
+                return jsonify({'reply': reply, 'bot': 'Jhapali', 'ai': True})
+        except Exception as e:
+            print('Jhapali AI error:', e)
+            err = str(e)
+            # Surface auth errors so admin can fix key
+            if '401' in err or '403' in err or 'Unauthorized' in err:
+                return jsonify({
+                    'reply': 'Jhapali AI key invalid. Admin → Settings → update API Key (xAI or OpenAI). Meanwhile: ask about matches, shop or membership.',
+                    'bot': 'Jhapali',
+                    'ai': False
+                })
+            # fall through to rules
+
+    # --- Rule-based fallback ---
+    msg = message.lower()
+    if any(w in msg for w in ('who are you', 'your name', 'i$h', 'jhapali', 'who r u')):
         return jsonify({'reply': 'I am Jhapali — shortcut I$H. Official fan assistant of Jhapa FC. Aayo Jhapali! Elephants are marching!', 'bot': 'Jhapali'})
-
-    if ('next' in message and 'match' in message) or message == 'next match':
+    if 'next match' in msg or 'upcoming match' in msg:
         nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
         if nm:
             return jsonify({'reply': f"Next match: Jhapa FC vs {nm.opponent} on {nm.match_date.strftime('%d %b %Y at %H:%M')} at {nm.venue or 'TBC'} ({nm.competition}).", 'bot': 'Jhapali'})
         return jsonify({'reply': 'Season starts at the end of March. Official fixtures will be published soon. Aayo Jhapali!', 'bot': 'Jhapali'})
-
-    if 'fixture' in message or 'upcoming' in message:
+    if 'fixture' in msg or 'schedule' in msg:
         ups = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).limit(5).all()
         if ups:
-            lines = [f"• {m.match_date.strftime('%d %b')} vs {m.opponent}" for m in ups]
+            lines = [f"• vs {m.opponent} — {m.match_date.strftime('%d %b %Y')}" for m in ups]
             return jsonify({'reply': 'Upcoming fixtures:\n' + '\n'.join(lines), 'bot': 'Jhapali'})
         return jsonify({'reply': 'Fixtures will open when the season begins (end of March).', 'bot': 'Jhapali'})
-
-    if 'result' in message:
+    if 'result' in msg or 'score' in msg:
         res = Match.query.filter_by(status='finished', is_published=True).order_by(Match.match_date.desc()).limit(5).all()
         if res:
             lines = [f"• vs {m.opponent}: {m.home_score if m.home_score is not None else '—'}-{m.away_score if m.away_score is not None else '—'}" for m in res]
             return jsonify({'reply': 'Recent results:\n' + '\n'.join(lines), 'bot': 'Jhapali'})
         return jsonify({'reply': 'No results published yet.', 'bot': 'Jhapali'})
-
-    if any(w in message for w in ('shop', 'jersey', 'kit', 'store', 'merchandise')):
-        return jsonify({'reply': 'Visit the Official Store for jerseys and kits — open Shop from the menu. You can also order a custom jersey!', 'bot': 'Jhapali'})
-
-    if 'member' in message or 'fan club' in message:
-        return jsonify({'reply': 'Join the Jhapa FC family! Plans: Fan (free), Silver, Gold (1 free ticket), Premium (2 free tickets). Open Membership to register.', 'bot': 'Jhapali'})
-
-    if any(w in message for w in ('squad', 'player', 'team', 'laken')):
-        return jsonify({'reply': 'See Our Squad for the Elephants. Captain Laken Limbu and the full NSL roster are listed there.', 'bot': 'Jhapali'})
-
-    if any(w in message for w in ('contact', 'email', 'phone', 'hello', 'hi', 'namaste', 'aayo')):
-        if 'contact' in message or 'email' in message or 'phone' in message:
-            return jsonify({'reply': 'Use the Contact page to send a message to the club. Official details are managed from Admin Settings.', 'bot': 'Jhapali'})
+    if any(w in msg for w in ('shop', 'jersey', 'kit', 'store', 'merchandise')):
+        return jsonify({'reply': 'Visit the Official Store for jerseys and kits — open Shop from the menu. You can also order a custom jersey with your name & number!', 'bot': 'Jhapali'})
+    if 'member' in msg or 'fan club' in msg:
+        return jsonify({'reply': 'Join the Jhapa FC family! Plans: Fan (free), Gold (1 free ticket), Premium (2 free tickets). Open Membership to register.', 'bot': 'Jhapali'})
+    if any(w in msg for w in ('squad', 'player', 'team')):
+        return jsonify({'reply': 'See Our Squad for the Elephants. Full roster is on the Squad page.', 'bot': 'Jhapali'})
+    if any(w in msg for w in ('contact', 'email', 'phone')):
+        return jsonify({'reply': 'Use the Contact page to message the club. Details are set in Admin → Settings.', 'bot': 'Jhapali'})
+    if any(w in msg for w in ('hello', 'hi', 'namaste', 'aayo')):
         return jsonify({'reply': 'Namaste! I am Jhapali (I$H). Try: Next Match, Fixtures, Shop, Membership, Squad or Contact. Aayo Jhapali!', 'bot': 'Jhapali'})
-
-    return jsonify({'reply': 'I am Jhapali (I$H). Try asking: Next Match, Fixtures, Results, Shop, Membership, Squad or Contact. Elephants are marching!', 'bot': 'Jhapali'})
+    return jsonify({'reply': 'I am Jhapali (I$H). Try: Next Match, Fixtures, Results, Shop, Membership, Squad or Contact. Elephants are marching!', 'bot': 'Jhapali'})
 
 
 @main_bp.route('/sitemap.xml')

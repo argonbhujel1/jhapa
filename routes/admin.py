@@ -191,7 +191,17 @@ def product_edit(id=None):
             flash('Front image upload failed — check Cloudinary or use URL.', 'error')
         path_back = resolve_image_input('image_back', 'image_back_url', request.form, request.files, 'products')
         if path_back:
-            item.image_back = path_back
+            try:
+                item.image_back = path_back
+            except Exception:
+                # Fallback: store as SiteSetting if column missing
+                from models import SiteSetting
+                s = SiteSetting.query.filter_by(key=f'product_back_{item.id}').first()
+                if not s:
+                    s = SiteSetting(key=f'product_back_{item.id}', value=path_back)
+                    db.session.add(s)
+                else:
+                    s.value = path_back
         elif request.files.get('image_back') and request.files['image_back'].filename:
             flash('Back image upload failed — check Cloudinary or use URL.', 'error')
         db.session.commit()
@@ -442,7 +452,8 @@ def gallery_delete(id):
 def settings():
     if request.method == 'POST':
         for key in ['site_title', 'site_tagline', 'contact_email', 'contact_phone', 'contact_address',
-                    'facebook', 'instagram', 'twitter', 'youtube', 'bam_name', 'bam_url']:
+                    'facebook', 'instagram', 'twitter', 'youtube', 'bam_name', 'bam_url',
+                    'ai_enabled', 'ai_api_key', 'ai_api_base', 'ai_model', 'ai_system_prompt']:
             val = request.form.get(key)
             if val is not None:
                 s = SiteSetting.query.filter_by(key=key).first()
