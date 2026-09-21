@@ -45,7 +45,7 @@
           <td>{{ item.order }}</td>
           <td style="display:flex;gap:8px;">
             <a href="{{ url_for('admin.sponsor_edit', id=item.id) }}" class="btn btn-ghost" style="padding:6px 10px;">Edit</a>
-            <form method="POST" action="{{ url_for('admin.sponsor_delete', id=item.id) }}" onsubmit="return confirm('Delete this sponsor?');">
+            <form method="POST" action="{{ url_for('admin.sponsor_delete', id=item.id) }}" onsubmit="return jhapaConfirmDelete(this, 'Delete this sponsor?', 'Sponsor logo will be removed from the site.');">
               <button type="submit" class="btn btn-ghost" style="padding:6px 10px;color:var(--danger);">Delete</button>
             </form>
           </td>

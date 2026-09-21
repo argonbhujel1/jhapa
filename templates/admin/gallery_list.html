@@ -27,7 +27,7 @@
           <td>{{ 'Yes' if item.is_published else 'No' }}</td>
           <td class="admin-actions">
             <a href="{{ url_for('admin.gallery_edit', id=item.id) }}" class="btn btn-ghost btn-sm">Edit</a>
-            <form method="POST" action="{{ url_for('admin.gallery_delete', id=item.id) }}" onsubmit="return confirm('Delete this image?');" style="display:inline;">
+            <form method="POST" action="{{ url_for('admin.gallery_delete', id=item.id) }}" onsubmit="return jhapaConfirmDelete(this, 'Delete this image?', 'The gallery image will be removed.');" style="display:inline;">
               <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">Delete</button>
             </form>
           </td>

@@ -41,7 +41,7 @@
           <td>{{ item.publish_date.strftime('%d %b %Y') if item.publish_date else '—' }}</td>
           <td class="admin-actions">
             <a href="{{ url_for('admin.news_edit', id=item.id) }}" class="btn btn-ghost btn-sm">Edit</a>
-            <form method="POST" action="{{ url_for('admin.news_delete', id=item.id) }}" onsubmit="return confirm('Delete?');">
+            <form method="POST" action="{{ url_for('admin.news_delete', id=item.id) }}" onsubmit="return jhapaConfirmDelete(this, 'Delete this item?', 'This cannot be undone.');">
               <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">Delete</button>
             </form>
           </td>

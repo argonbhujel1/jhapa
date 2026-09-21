@@ -22,7 +22,7 @@
         <button type="submit" class="btn btn-outline">Mark as Unread</button>
       </form>
       {% endif %}
-      <form method="POST" action="{{ url_for('admin.message_delete', id=msg.id) }}" onsubmit="return confirm('Delete message?');">
+      <form method="POST" action="{{ url_for('admin.message_delete', id=msg.id) }}" onsubmit="return jhapaConfirmDelete(this, 'Delete this message?', 'This message will be permanently removed.');">
         <button type="submit" class="btn btn-ghost" style="color:var(--danger);">Delete</button>
       </form>
     </div>

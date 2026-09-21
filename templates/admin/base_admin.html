@@ -24,6 +24,49 @@
     .admin-topbar a { color: var(--text-muted); font-size: 0.85rem; margin-left: 16px; }
     .admin-topbar a:hover { color: var(--neon); }
     html[data-theme="light"] .admin-topbar { background: rgba(255,255,255,0.95); }
+
+    /* In-site delete modal */
+    .jhapa-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .jhapa-modal-overlay.open { display: flex; }
+    .jhapa-modal {
+      width: 100%; max-width: 400px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(0, 240, 255, 0.08);
+      text-align: center;
+    }
+    html[data-theme="light"] .jhapa-modal {
+      background: rgba(255,255,255,0.98);
+      border-color: rgba(0,0,0,0.1);
+    }
+    .jhapa-modal h3 {
+      font-family: var(--font-display), sans-serif;
+      color: var(--text, #fff);
+      font-size: 1.15rem;
+      margin: 0 0 10px;
+    }
+    .jhapa-modal p {
+      color: var(--text-muted, #94a3b8);
+      font-size: 0.9rem;
+      margin: 0 0 22px;
+      line-height: 1.5;
+    }
+    .jhapa-modal-actions {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    }
+    .jhapa-modal-actions .btn { min-width: 110px; }
+    .btn-danger-solid {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff; border: none;
+      box-shadow: 0 0 16px rgba(220, 38, 38, 0.35);
+    }
+    .btn-danger-solid:hover { filter: brightness(1.1); }
   </style>
 </head>
 <body>
@@ -52,6 +95,18 @@
 
   {% block content %}{% endblock %}
 
+  <!-- Site-styled delete confirmation -->
+  <div class="jhapa-modal-overlay" id="deleteModal" role="dialog" aria-modal="true">
+    <div class="jhapa-modal">
+      <h3 id="deleteModalTitle">Delete item?</h3>
+      <p id="deleteModalMsg">This action cannot be undone.</p>
+      <div class="jhapa-modal-actions">
+        <button type="button" class="btn btn-outline" id="deleteModalCancel">Cancel</button>
+        <button type="button" class="btn btn-danger-solid" id="deleteModalConfirm">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script>
   document.addEventListener('DOMContentLoaded', function(){
     var themeBtn = document.getElementById('themeToggle');
@@ -69,6 +124,46 @@
         setTimeout(function(){ a.remove(); }, 400);
       });
     }, 4000);
+
+    // In-site delete modal
+    var overlay = document.getElementById('deleteModal');
+    var titleEl = document.getElementById('deleteModalTitle');
+    var msgEl = document.getElementById('deleteModalMsg');
+    var cancelBtn = document.getElementById('deleteModalCancel');
+    var confirmBtn = document.getElementById('deleteModalConfirm');
+    var pendingForm = null;
+
+    window.jhapaConfirmDelete = function(form, title, message) {
+      pendingForm = form;
+      if (titleEl) titleEl.textContent = title || 'Delete item?';
+      if (msgEl) msgEl.textContent = message || 'This action cannot be undone.';
+      if (overlay) overlay.classList.add('open');
+      return false;
+    };
+
+    function closeModal() {
+      if (overlay) overlay.classList.remove('open');
+      pendingForm = null;
+    }
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+    if (overlay) {
+      overlay.addEventListener('click', function(e){
+        if (e.target === overlay) closeModal();
+      });
+    }
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function(){
+        if (pendingForm) {
+          var f = pendingForm;
+          pendingForm = null;
+          if (overlay) overlay.classList.remove('open');
+          f.submit();
+        }
+      });
+    }
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeModal();
+    });
   });
   </script>
   {% block extra_js %}{% endblock %}

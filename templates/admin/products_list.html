@@ -41,7 +41,7 @@
           <td>{{ 'Yes' if item.is_active else 'No' }}</td>
           <td class="admin-actions">
             <a href="{{ url_for('admin.product_edit', id=item.id) }}" class="btn btn-ghost btn-sm">Edit</a>
-            <form method="POST" action="{{ url_for('admin.product_delete', id=item.id) }}" onsubmit="return confirm('Delete?');">
+            <form method="POST" action="{{ url_for('admin.product_delete', id=item.id) }}" onsubmit="return jhapaConfirmDelete(this, 'Delete this item?', 'This cannot be undone.');">
               <button type="submit" class="btn btn-ghost btn-sm" style="color:var(--danger);">Delete</button>
             </form>
           </td>
