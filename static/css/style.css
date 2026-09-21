@@ -2300,3 +2300,47 @@ html:not([data-theme]) body {
   letter-spacing: 0.3em !important;
   font-weight: 800 !important;
 }
+
+
+/* Number fills the central back panel (green box area on kit) */
+.jp-name {
+  top: 18% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 62% !important;
+  font-size: clamp(0.9rem, 3.4vw, 1.2rem) !important;
+  letter-spacing: 0.16em !important;
+  z-index: 4;
+}
+.jp-number {
+  /* Fill the back number panel */
+  top: 28% !important;
+  left: 50% !important;
+  transform: translate(-50%, 0) !important;
+  width: 52% !important;
+  height: 42% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: clamp(5.5rem, 24vw, 8.5rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.05em !important;
+  line-height: 0.85 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* slightly condensed width, full height of panel */
+  transform: translateX(-50%) scaleX(0.88) scaleY(1.12) !important;
+  transform-origin: center center !important;
+  text-align: center !important;
+  color: #fff !important;
+  text-shadow:
+    0 3px 0 rgba(0,0,0,0.5),
+    0 6px 16px rgba(0,0,0,0.35) !important;
+  z-index: 4;
+  overflow: visible !important;
+}
+.jp-bam {
+  top: auto !important;
+  bottom: 9% !important;
+  z-index: 4;
+}
