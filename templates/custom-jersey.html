@@ -120,6 +120,10 @@
       img.src = url;
       img.style.display = 'block';
     }
+    // Kit-based text colors: home=yellow, away=blue, third=dark
+    back.setAttribute('data-kit', t);
+    var photo = document.getElementById('jerseyPhoto');
+    if (photo) photo.setAttribute('data-kit', t);
   }
   nameIn.addEventListener('input', updName);
   numIn.addEventListener('input', updNum);

@@ -2358,3 +2358,68 @@ html:not([data-theme]) body {
 #previewNum {
   letter-spacing: -0.14em !important;
 }
+
+
+/* Name larger + more letter-spacing */
+.jp-name {
+  top: 17% !important;
+  font-size: clamp(1.15rem, 4.2vw, 1.55rem) !important;
+  letter-spacing: 0.28em !important;
+  font-weight: 800 !important;
+  width: 70% !important;
+}
+
+/* Numbers: slight spacing (readable double digits) */
+.jp-number {
+  letter-spacing: 0.04em !important;
+  font-size: clamp(5.2rem, 22vw, 7.8rem) !important;
+}
+
+/* BAM + name/number colors by kit */
+/* HOME — blue jersey → yellow/gold text */
+.jersey-back[data-kit="home"] .jp-name,
+.jersey-back-photo[data-kit="home"] .jp-name,
+.jersey-back[data-kit="home"] .jp-number,
+.jersey-back-photo[data-kit="home"] .jp-number {
+  color: #fff !important;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.55) !important;
+}
+.jersey-back[data-kit="home"] .jp-bam span,
+.jersey-back-photo[data-kit="home"] .jp-bam span {
+  color: #fde047 !important; /* yellow on blue */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7) !important;
+}
+
+/* AWAY — yellow jersey → blue text */
+.jersey-back[data-kit="away"] .jp-name,
+.jersey-back-photo[data-kit="away"] .jp-name,
+.jersey-back[data-kit="away"] .jp-number,
+.jersey-back-photo[data-kit="away"] .jp-number {
+  color: #0c4a6e !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35) !important;
+}
+.jersey-back[data-kit="away"] .jp-bam span,
+.jersey-back-photo[data-kit="away"] .jp-bam span {
+  color: #0369a1 !important; /* blue on yellow */
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4) !important;
+}
+
+/* THIRD — white jersey → dark navy text */
+.jersey-back[data-kit="third"] .jp-name,
+.jersey-back-photo[data-kit="third"] .jp-name,
+.jersey-back[data-kit="third"] .jp-number,
+.jersey-back-photo[data-kit="third"] .jp-number {
+  color: #0f172a !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.5) !important;
+}
+.jersey-back[data-kit="third"] .jp-bam span,
+.jersey-back-photo[data-kit="third"] .jp-bam span {
+  color: #1e3a5f !important; /* navy on white */
+  text-shadow: none !important;
+}
+
+/* default home if no data-kit */
+.jersey-back:not([data-kit]) .jp-bam span,
+.jersey-back-photo:not([data-kit]) .jp-bam span {
+  color: #fde047 !important;
+}
