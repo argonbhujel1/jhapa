@@ -243,6 +243,18 @@ def create_app():
                     with eng.begin() as conn:
                         conn.execute(text('ALTER TABLE products ADD COLUMN image_back TEXT'))
                     print('Added products.image_back')
+
+        try:
+            insp2 = inspect(eng)
+            if 'cart_items' in insp2.get_table_names():
+                cols = {c['name'] for c in insp2.get_columns('cart_items')}
+                if 'size' not in cols:
+                    with eng.begin() as conn:
+                        conn.execute(text('ALTER TABLE cart_items ADD COLUMN size VARCHAR(40)'))
+                    print('Schema: cart_items.size')
+        except Exception as e:
+            print('cart size schema:', e)
+
         except Exception as e:
             print('image_back alter:', e)
         try:

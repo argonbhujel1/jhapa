@@ -302,15 +302,21 @@ def chat_api():
                 'NEVER invent player names or stats — only use LIVE DATA provided below or say official info is on the website. '
                 'If the user asks for the squad or player names, list them from LIVE DATA immediately without repeated clarifying questions.'
             )
-            # Live club data so AI answers squad/match questions from DB
+            # Full website live data for Jhapali answers
             try:
                 ctx = []
-                nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
-                if nm:
-                    ctx.append('Next match: vs %s on %s at %s.' % (
-                        nm.opponent,
-                        nm.match_date.strftime('%d %b %Y %H:%M'),
-                        nm.venue or 'TBC'))
+                # Matches
+                ups = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).limit(5).all()
+                if ups:
+                    ctx.append('Upcoming fixtures: ' + '; '.join(
+                        'vs %s on %s (%s)' % (m.opponent, m.match_date.strftime('%d %b %Y %H:%M'), m.venue or 'TBC')
+                        for m in ups))
+                results = Match.query.filter_by(status='completed', is_published=True).order_by(Match.match_date.desc()).limit(5).all()
+                if results:
+                    ctx.append('Recent results: ' + '; '.join(
+                        'vs %s %s-%s' % (m.opponent, m.home_score if m.home_score is not None else '?', m.away_score if m.away_score is not None else '?')
+                        for m in results))
+                # Squad
                 players = Player.query.filter_by(is_published=True).order_by(Player.number.asc(), Player.name.asc()).all()
                 if players:
                     lines = []
@@ -321,17 +327,48 @@ def chat_api():
                         if pl.position:
                             bit += ' (%s)' % pl.position
                         lines.append(bit)
-                    ctx.append('Official published squad (use these names only; do not invent players): ' + '; '.join(lines))
+                    ctx.append('Published squad: ' + '; '.join(lines))
                 else:
-                    ctx.append('Squad list not published on site yet — say official player list is on Our Squad page or coming soon. Do not invent player names.')
-                leaders = Leadership.query.filter_by(is_published=True).order_by(Leadership.order).limit(20).all()
+                    ctx.append('Squad not published yet — direct users to Our Squad page. Do not invent players.')
+                # Leadership
+                leaders = Leadership.query.filter_by(is_published=True).order_by(Leadership.order).limit(25).all()
                 if leaders:
                     ctx.append('Leadership: ' + '; '.join(
-                        '%s — %s' % (L.name, L.position or L.section or '') for L in leaders if L.name
-                    ))
-                if ctx:
-                    system += ' LIVE DATA FROM WEBSITE DATABASE: ' + ' | '.join(ctx)
-                    system += ' When user asks for players/squad/roster, list the published squad from LIVE DATA. Be direct, do not keep asking which season if data is already provided. If a name is not in LIVE DATA, say it is not on the official published list.'
+                        '%s (%s)' % (L.name, L.position or L.section or '') for L in leaders if L.name))
+                # News (latest)
+                news = News.query.filter_by(status='published').order_by(News.id.desc()).limit(8).all()
+                if not news:
+                    news = News.query.filter_by(status='published').order_by(News.id.desc()).limit(8).all()
+                if news:
+                    nlines = []
+                    for a in news:
+                        title = a.title or ''
+                        summary = (a.excerpt or a.content or '')[:120].replace('\n', ' ')
+                        nlines.append('%s — %s' % (title, summary))
+                    ctx.append('Latest official news on website: ' + ' || '.join(nlines))
+                    ctx.append('For transfer rumours: only mention what appears in official news above. Do not invent transfer rumours. If none, say no official transfer news published yet and fans should follow club news.')
+                else:
+                    ctx.append('No news articles published yet. No official transfer rumours on site.')
+                # Shop
+                prods = Product.query.filter_by(is_active=True).order_by(Product.name).limit(15).all()
+                if prods:
+                    ctx.append('Shop products: ' + '; '.join(
+                        '%s (Rs %s)' % (p.name, p.price) for p in prods))
+                ctx.append('Custom jersey: fans can order via Make Your Own Jersey (name + number on back).')
+                # Membership
+                ctx.append('Membership plans: Fan (free), Gold (1 free match ticket), Premium (2 free match tickets). Register on Membership page.')
+                # Contact
+                email = get_set('contact_email')
+                phone = get_set('contact_phone')
+                addr = get_set('contact_address')
+                if email or phone or addr:
+                    ctx.append('Contact: %s %s %s' % (email or '', phone or '', addr or ''))
+                # Club
+                tag = get_set('site_tagline') or 'The Pride of Jhapa'
+                ctx.append('Club: Jhapa FC, Nepal. Nickname The Elephants. Tagline: %s. Tech partner BAM Studio.' % tag)
+
+                system += ' LIVE WEBSITE DATA (answer from this; do not invent): ' + ' | '.join(ctx)
+                system += ' RULES: Answer from LIVE WEBSITE DATA first. For squad/players list published squad. For news/transfers only use published news — never invent rumours. Be direct and helpful. Short answers. If unknown, say check the relevant page on jhapacityfc site.'
             except Exception as e:
                 print('chat context:', e)
 

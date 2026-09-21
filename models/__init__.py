@@ -154,6 +154,7 @@ class CartItem(db.Model):
     quantity = db.Column(db.Integer, default=1)
     custom_name = db.Column(db.String(50))  # for custom jersey
     custom_number = db.Column(db.String(5))
+    size = db.Column(db.String(40))  # e.g. "Home / M"
     is_custom = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -185,7 +186,7 @@ class OrderItem(db.Model):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'))
     product_name = db.Column(db.String(150))
-    size = db.Column(db.String(20))
+    size = db.Column(db.String(40))
     quantity = db.Column(db.Integer, default=1)
     unit_price = db.Column(db.Numeric(10, 2))
     custom_name = db.Column(db.String(50))

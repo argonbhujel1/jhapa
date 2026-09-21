@@ -60,6 +60,8 @@ def custom_jersey():
         try:
             name = request.form.get('player_name', '').strip()[:12]
             number = request.form.get('jersey_number', '').strip()[:2]
+            jersey_type = request.form.get('jersey_type', 'Home').strip()[:20]
+            size = request.form.get('size', 'M').strip()[:10]
             qty = int(request.form.get('quantity', 1) or 1)
             qty = max(1, min(qty, 5))
 
@@ -89,6 +91,11 @@ def custom_jersey():
                 custom_number=number,
                 is_custom=True,
             )
+            # size field stores kit + size for admin order view e.g. "Home / M"
+            try:
+                item.size = '%s / %s' % (jersey_type, size)
+            except Exception:
+                pass
             db.session.add(item)
             db.session.commit()
             flash('Custom jersey added to cart!', 'success')
@@ -243,7 +250,7 @@ def checkout():
                 product_name=item.product.name,
                 unit_price=item.product.price,
                 quantity=item.quantity,
-                size=item.variant.size if item.variant else (item.custom_name and 'Custom') or 'N/A',
+                size=getattr(item, 'size', None) or (item.variant.size if item.variant else None) or ('Custom' if item.is_custom else 'N/A'),
                 custom_name=item.custom_name,
                 custom_number=item.custom_number,
                 is_custom=item.is_custom,

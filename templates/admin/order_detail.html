@@ -1,15 +1,25 @@
 {% extends "admin/base_admin.html" %}
 {% block title %}Order {{ order.order_number }} | Admin{% endblock %}
 {% block content %}
-<div class="container" style="max-width:800px;padding:40px 20px;">
-  <h2 style="color:var(--text);">Order {{ order.order_number }}</h2>
-  <div class="card" style="padding:24px;margin-top:16px;">
-    <p><strong>Customer:</strong> {{ order.customer_name }} · {{ order.customer_phone }}</p>
-    <p><strong>Email:</strong> {{ order.customer_email or '—' }}</p>
-    <p><strong>Address:</strong> {{ order.address }}, {{ order.city or '' }} {{ order.province or '' }}</p>
-    <p><strong>Total:</strong> Rs. {{ "{:,.0f}".format(order.total) }} · {{ order.payment_method }}</p>
-    <p><strong>Current Status:</strong> <span class="badge">{{ order.status }}</span></p>
-    <form method="POST" action="{{ url_for('admin.order_status', id=order.id) }}" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div style="padding:0 20px 16px;"><strong style="color:var(--text);">JHAPA FC Admin</strong></div>
+    <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin.orders_list') }}">Orders</a>
+    <a href="{{ url_for('admin.products_list') }}">Products</a>
+    <a href="{{ url_for('admin.logout') }}">Logout</a>
+  </aside>
+  <div class="admin-main">
+    <div class="admin-header-bar"><h1>Order {{ order.order_number }}</h1></div>
+    <div class="card" style="padding:20px;margin-bottom:16px;">
+      <p><strong>Customer:</strong> {{ order.customer_name }}</p>
+      <p><strong>Phone:</strong> {{ order.customer_phone }}</p>
+      <p><strong>Email:</strong> {{ order.customer_email or '—' }}</p>
+      <p><strong>Address:</strong> {{ order.address }}{% if order.city %}, {{ order.city }}{% endif %}</p>
+      <p><strong>Status:</strong> {{ order.status }} · <strong>Total:</strong> Rs. {{ "{:,.0f}".format(order.total) }}</p>
+      {% if order.notes %}<p><strong>Notes:</strong> {{ order.notes }}</p>{% endif %}
+    </div>
+    <form method="POST" action="{{ url_for('admin.order_status', id=order.id) }}" style="margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
       <select name="status" class="form-control" style="max-width:200px;">
         {% for s in ['Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'] %}
         <option value="{{ s }}" {% if order.status == s %}selected{% endif %}>{{ s }}</option>
@@ -17,17 +27,29 @@
       </select>
       <button type="submit" class="btn btn-primary">Update Status</button>
     </form>
-    <p class="text-muted" style="font-size:0.8rem;margin-top:8px;">When status is set to <strong>Confirmed</strong>, product stock is reduced automatically.</p>
-    <h3 style="color:var(--text);margin:20px 0 10px;">Items</h3>
-    <ul>
-      {% for i in order.items %}
-      <li style="margin-bottom:6px;">{{ i.product_name }} × {{ i.quantity }} — Rs. {{ i.unit_price }}
-        {% if i.size %} ({{ i.size }}){% endif %}
-        {% if i.is_custom %} · Custom: {{ i.custom_name }} #{{ i.custom_number }}{% endif %}
-      </li>
-      {% endfor %}
-    </ul>
-    <a href="{{ url_for('admin.orders_list') }}" class="btn btn-outline mt-2">← Orders</a>
+    <h3 style="color:var(--text);margin-bottom:12px;">Items</h3>
+    {% for i in order.items %}
+    <div class="card" style="padding:16px;margin-bottom:12px;">
+      <p style="font-weight:700;color:var(--text);">{{ i.product_name }} × {{ i.quantity }}</p>
+      <p>Unit: Rs. {{ i.unit_price }} · Line: Rs. {{ "{:,.0f}".format((i.unit_price or 0) * (i.quantity or 1)) }}</p>
+      {% if i.is_custom %}
+      <div style="margin-top:12px;padding:16px;border-radius:12px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.25);">
+        <p style="color:var(--neon);font-weight:700;margin-bottom:8px;">Custom Jersey Order</p>
+        <p><strong>Kit / Size:</strong> {{ i.size or '—' }}</p>
+        <p><strong>Name on back:</strong> {{ i.custom_name or '—' }}</p>
+        <p><strong>Number on back:</strong> {{ i.custom_number or '—' }}</p>
+        <div style="margin-top:12px;max-width:160px;aspect-ratio:3/4;border-radius:10px;background:linear-gradient(165deg,#0a4a7a,#063a5c);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:var(--font-display),sans-serif;">
+          <div style="font-size:0.7rem;letter-spacing:0.2em;font-weight:800;">{{ (i.custom_name or 'NAME')|upper }}</div>
+          <div style="font-size:2.8rem;font-weight:900;line-height:1;">{{ i.custom_number or '00' }}</div>
+          <div style="font-size:0.55rem;letter-spacing:0.2em;color:#fde047;margin-top:6px;">BAM STUDIO</div>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-muted">Size: {{ i.size or '—' }}</p>
+      {% endif %}
+    </div>
+    {% endfor %}
+    <a href="{{ url_for('admin.orders_list') }}" class="btn btn-outline">← Orders</a>
   </div>
 </div>
 {% endblock %}

@@ -2519,3 +2519,14 @@ html:not([data-theme]) body {
   font-style: normal !important;
   text-transform: uppercase !important;
 }
+
+
+/* Jersey name+number = same as site display font */
+.jp-name,
+.jp-number,
+#previewName,
+#previewNum {
+  font-family: var(--font-display), Orbitron, Impact, sans-serif !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
