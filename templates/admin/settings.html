@@ -110,7 +110,8 @@
       <input type="url" name="ai_api_base" class="form-control" value="{{ settings.get('ai_api_base','https://api.x.ai/v1') }}" placeholder="https://api.x.ai/v1">
     </div>
     <div class="form-group"><label>Model</label>
-      <input type="text" name="ai_model" class="form-control" value="{{ settings.get('ai_model','grok-2-latest') }}" placeholder="grok-2-latest">
+      <p class="text-muted" style="font-size:0.8rem;">Use exact ID from xAI docs e.g. <code>grok-3</code>, <code>grok-3-mini</code>, <code>grok-4.6</code> — not grok-2-latest</p>
+      <input type="text" name="ai_model" class="form-control" value="{{ settings.get('ai_model','grok-3') }}" placeholder="grok-3 or grok-3-mini or grok-4.6">
     </div>
     <div class="form-group"><label>System prompt (personality)</label>
       <textarea name="ai_system_prompt" class="form-control" rows="5" placeholder="You are Jhapali...">{{ settings.get('ai_system_prompt','') }}</textarea>

@@ -294,7 +294,7 @@ def chat_api():
                 or os.environ.get('AI_API_BASE')
                 or 'https://api.x.ai/v1'
             ).rstrip('/')
-            model = get_set('ai_model') or os.environ.get('AI_MODEL') or 'grok-2-latest'
+            model = get_set('ai_model') or os.environ.get('AI_MODEL') or 'grok-3'
             system = get_set('ai_system_prompt') or (
                 'You are Jhapali (I$H), official fan assistant of Jhapa FC, Jhapa, Nepal (The Elephants). '
                 'Reply warmly and briefly. Nepali greetings OK. Help with matches, shop, membership, squad. '

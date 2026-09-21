@@ -2423,3 +2423,16 @@ html:not([data-theme]) body {
 .jersey-back-photo:not([data-kit]) .jp-bam span {
   color: #fde047 !important;
 }
+
+
+/* FINAL: double-digit number spacing (visible gap between 1 and 7) */
+.jp-number,
+#previewNum,
+.jersey-print .jp-number {
+  letter-spacing: 0.18em !important;
+  font-kerning: none !important;
+  font-feature-settings: "kern" 0 !important;
+}
+.jp-name {
+  letter-spacing: 0.32em !important;
+}
