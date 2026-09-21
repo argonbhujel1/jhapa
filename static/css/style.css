@@ -2507,3 +2507,15 @@ html:not([data-theme]) body {
   color: #0f172a !important;
   -webkit-text-stroke: 1px rgba(255,255,255,0.35);
 }
+
+
+/* Name + number MUST share same printed kit font */
+.jp-name,
+.jp-number,
+#previewName,
+#previewNum {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Black", "Helvetica Neue", sans-serif !important;
+  font-weight: 900 !important;
+  font-style: normal !important;
+  text-transform: uppercase !important;
+}

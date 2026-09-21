@@ -296,17 +296,44 @@ def chat_api():
             ).rstrip('/')
             model = get_set('ai_model') or os.environ.get('AI_MODEL') or 'grok-3'
             system = get_set('ai_system_prompt') or (
-                'You are Jhapali (I$H), official fan assistant of Jhapa FC, Jhapa, Nepal (The Elephants). '
-                'Reply warmly and briefly. Nepali greetings OK. Help with matches, shop, membership, squad. '
-                'Do not invent official stats. You are an AI for the club.'
+                'You are Jhapali (shortcut I$H), the official AI fan assistant of Jhapa FC (Jhapa, Nepal; The Elephants). '
+                'Answer clearly and directly. Use short answers. Nepali greetings OK (Namaste, Aayo Jhapali). '
+                'Help with matches, squad/players, shop, membership, gallery, contact. '
+                'NEVER invent player names or stats — only use LIVE DATA provided below or say official info is on the website. '
+                'If the user asks for the squad or player names, list them from LIVE DATA immediately without repeated clarifying questions.'
             )
+            # Live club data so AI answers squad/match questions from DB
             try:
+                ctx = []
                 nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
                 if nm:
-                    system += ' Next match: vs %s on %s.' % (
-                        nm.opponent, nm.match_date.strftime('%d %b %Y %H:%M'))
-            except Exception:
-                pass
+                    ctx.append('Next match: vs %s on %s at %s.' % (
+                        nm.opponent,
+                        nm.match_date.strftime('%d %b %Y %H:%M'),
+                        nm.venue or 'TBC'))
+                players = Player.query.filter_by(is_published=True).order_by(Player.number.asc(), Player.name.asc()).all()
+                if players:
+                    lines = []
+                    for pl in players:
+                        bit = pl.name or 'Unknown'
+                        if pl.number is not None:
+                            bit = '#%s %s' % (pl.number, bit)
+                        if pl.position:
+                            bit += ' (%s)' % pl.position
+                        lines.append(bit)
+                    ctx.append('Official published squad (use these names only; do not invent players): ' + '; '.join(lines))
+                else:
+                    ctx.append('Squad list not published on site yet — say official player list is on Our Squad page or coming soon. Do not invent player names.')
+                leaders = Leadership.query.filter_by(is_published=True).order_by(Leadership.order).limit(20).all()
+                if leaders:
+                    ctx.append('Leadership: ' + '; '.join(
+                        '%s — %s' % (L.name, L.position or L.section or '') for L in leaders if L.name
+                    ))
+                if ctx:
+                    system += ' LIVE DATA FROM WEBSITE DATABASE: ' + ' | '.join(ctx)
+                    system += ' When user asks for players/squad/roster, list the published squad from LIVE DATA. Be direct, do not keep asking which season if data is already provided. If a name is not in LIVE DATA, say it is not on the official published list.'
+            except Exception as e:
+                print('chat context:', e)
 
             def build_body(use_completion_tokens=False, omit_max=False):
                 payload = {
