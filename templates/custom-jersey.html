@@ -109,7 +109,8 @@
   function updNum(){
     var v = (numIn.value || '').replace(/\D/g,'');
     numIn.value = v;
-    numEl.textContent = v || '10';
+    // no spaces between digits
+    numEl.textContent = (v || '10').replace(/\s+/g,'');
   }
   function updKit(){
     var t = (kitSel.value || 'Home').toLowerCase();

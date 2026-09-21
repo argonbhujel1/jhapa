@@ -455,12 +455,16 @@ def settings():
                     'facebook', 'instagram', 'twitter', 'youtube', 'bam_name', 'bam_url',
                     'ai_enabled', 'ai_api_key', 'ai_api_base', 'ai_model', 'ai_system_prompt']:
             val = request.form.get(key)
-            if val is not None:
-                s = SiteSetting.query.filter_by(key=key).first()
-                if s:
-                    s.value = val
-                else:
-                    db.session.add(SiteSetting(key=key, value=val))
+            if val is None:
+                continue
+            # Do not wipe secret key if admin left password field empty
+            if key == 'ai_api_key' and str(val).strip() == '':
+                continue
+            s = SiteSetting.query.filter_by(key=key).first()
+            if s:
+                s.value = val
+            else:
+                db.session.add(SiteSetting(key=key, value=val))
         path = resolve_image_input('club_logo', 'club_logo_url', request.form, request.files, 'branding')
         if path:
             s = SiteSetting.query.filter_by(key='club_logo').first()

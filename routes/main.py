@@ -1,3 +1,4 @@
+import os
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from flask_login import login_required, current_user
 from models import (
@@ -251,15 +252,20 @@ def contact():
         flash('Please fill in all required fields.', 'error')
     return render_template('contact.html')
 
-
 @main_bp.route('/api/chat', methods=['POST'])
 def chat_api():
-    """Jhapali (I$H) — real AI when configured, else smart club fallback."""
+    """Jhapali (I$H) — real AI when API key is set in Admin Settings."""
+    import json
+    import os
+    import ssl
+    import urllib.error
+    import urllib.request
+
     data = request.get_json(silent=True) or {}
     message = (data.get('message') or '').strip()
     if not message:
         return jsonify({
-            'reply': 'Namaste! I am Jhapali (I$H), official fan assistant of Jhapa FC. Ask me anything about the club.',
+            'reply': 'Namaste! I am Jhapali (I$H), official fan assistant of Jhapa FC.',
             'bot': 'Jhapali'
         })
 
@@ -267,41 +273,40 @@ def chat_api():
         try:
             from models import SiteSetting
             s = SiteSetting.query.filter_by(key=key).first()
-            return (s.value if s and s.value is not None else default) or default
+            if s and s.value is not None and str(s.value).strip() != '':
+                return str(s.value).strip()
+            return default
         except Exception:
             return default
 
-    # --- Real AI (OpenAI-compatible: xAI Grok, OpenAI, etc.) ---
-    api_key = (get_set('ai_api_key') or current_app.config.get('AI_API_KEY') or '').strip()
+    api_key = (
+        get_set('ai_api_key')
+        or current_app.config.get('AI_API_KEY')
+        or os.environ.get('AI_API_KEY')
+        or ''
+    ).strip()
     ai_on = (get_set('ai_enabled', 'true') or 'true').lower() in ('1', 'true', 'yes', 'on')
+
     if api_key and ai_on:
         try:
-            import json
-            import urllib.request
-            base = (get_set('ai_api_base') or current_app.config.get('AI_API_BASE') or 'https://api.x.ai/v1').rstrip('/')
-            model = get_set('ai_model') or current_app.config.get('AI_MODEL') or 'grok-3-latest'
+            base = (
+                get_set('ai_api_base')
+                or os.environ.get('AI_API_BASE')
+                or 'https://api.x.ai/v1'
+            ).rstrip('/')
+            model = get_set('ai_model') or os.environ.get('AI_MODEL') or 'grok-2-latest'
             system = get_set('ai_system_prompt') or (
-                'You are Jhapali (shortcut name I$H), the official friendly fan assistant of Jhapa FC, '
-                'a football club from Jhapa, Nepal (nicknamed The Elephants). '
-                'Speak warmly, use short clear answers, mix simple English and light Nepali greetings when natural '
-                '(Namaste, Aayo Jhapali). Help with matches, squad, shop, membership, gallery, contact and club info. '
-                'Do not invent official player stats or unconfirmed results. If unsure, say official info is on the website or coming soon. '
-                'Never claim to be human. Sign off spirit: Elephants are marching.'
+                'You are Jhapali (I$H), official fan assistant of Jhapa FC, Jhapa, Nepal (The Elephants). '
+                'Reply warmly and briefly. Nepali greetings OK. Help with matches, shop, membership, squad. '
+                'Do not invent official stats. You are an AI for the club.'
             )
-            # Club context snippet
-            ctx_parts = []
             try:
                 nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
                 if nm:
-                    ctx_parts.append(f"Next match: vs {nm.opponent} on {nm.match_date.strftime('%d %b %Y %H:%M')} at {nm.venue or 'TBC'}.")
-                email = get_set('contact_email')
-                phone = get_set('contact_phone')
-                if email or phone:
-                    ctx_parts.append(f"Contact: {email or ''} {phone or ''}".strip())
+                    system += ' Next match: vs %s on %s.' % (
+                        nm.opponent, nm.match_date.strftime('%d %b %Y %H:%M'))
             except Exception:
                 pass
-            if ctx_parts:
-                system = system + ' Live context: ' + ' '.join(ctx_parts)
 
             body = json.dumps({
                 'model': model,
@@ -310,7 +315,7 @@ def chat_api():
                     {'role': 'user', 'content': message},
                 ],
                 'temperature': 0.7,
-                'max_tokens': 500,
+                'max_tokens': 600,
             }).encode('utf-8')
             req = urllib.request.Request(
                 base + '/chat/completions',
@@ -318,58 +323,55 @@ def chat_api():
                 headers={
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + api_key,
+                    'User-Agent': 'JhapaFC-Jhapali/1.0',
                 },
                 method='POST',
             )
-            with urllib.request.urlopen(req, timeout=45) as resp:
+            ctx = ssl.create_default_context()
+            with urllib.request.urlopen(req, timeout=50, context=ctx) as resp:
                 payload = json.loads(resp.read().decode('utf-8'))
-            reply = payload['choices'][0]['message']['content'].strip()
+            reply = (payload.get('choices') or [{}])[0].get('message', {}).get('content', '').strip()
             if reply:
                 return jsonify({'reply': reply, 'bot': 'Jhapali', 'ai': True})
+            return jsonify({'reply': 'Jhapali AI returned empty. Try again.', 'bot': 'Jhapali', 'ai': True})
+        except urllib.error.HTTPError as e:
+            err_body = ''
+            try:
+                err_body = e.read().decode('utf-8', errors='ignore')[:200]
+            except Exception:
+                pass
+            print('Jhapali HTTPError', e.code, err_body)
+            return jsonify({
+                'reply': 'AI error %s. Check Settings API Key / Model. %s' % (e.code, err_body[:100]),
+                'bot': 'Jhapali',
+                'ai': False,
+            })
         except Exception as e:
-            print('Jhapali AI error:', e)
-            err = str(e)
-            # Surface auth errors so admin can fix key
-            if '401' in err or '403' in err or 'Unauthorized' in err:
-                return jsonify({
-                    'reply': 'Jhapali AI key invalid. Admin → Settings → update API Key (xAI or OpenAI). Meanwhile: ask about matches, shop or membership.',
-                    'bot': 'Jhapali',
-                    'ai': False
-                })
-            # fall through to rules
+            print('Jhapali AI error:', repr(e))
+            return jsonify({
+                'reply': 'AI connection failed: %s. Check Admin Settings API key.' % type(e).__name__,
+                'bot': 'Jhapali',
+                'ai': False,
+            })
 
-    # --- Rule-based fallback ---
-    msg = message.lower()
-    if any(w in msg for w in ('who are you', 'your name', 'i$h', 'jhapali', 'who r u')):
-        return jsonify({'reply': 'I am Jhapali — shortcut I$H. Official fan assistant of Jhapa FC. Aayo Jhapali! Elephants are marching!', 'bot': 'Jhapali'})
-    if 'next match' in msg or 'upcoming match' in msg:
-        nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
-        if nm:
-            return jsonify({'reply': f"Next match: Jhapa FC vs {nm.opponent} on {nm.match_date.strftime('%d %b %Y at %H:%M')} at {nm.venue or 'TBC'} ({nm.competition}).", 'bot': 'Jhapali'})
-        return jsonify({'reply': 'Season starts at the end of March. Official fixtures will be published soon. Aayo Jhapali!', 'bot': 'Jhapali'})
-    if 'fixture' in msg or 'schedule' in msg:
-        ups = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).limit(5).all()
-        if ups:
-            lines = [f"• vs {m.opponent} — {m.match_date.strftime('%d %b %Y')}" for m in ups]
-            return jsonify({'reply': 'Upcoming fixtures:\n' + '\n'.join(lines), 'bot': 'Jhapali'})
-        return jsonify({'reply': 'Fixtures will open when the season begins (end of March).', 'bot': 'Jhapali'})
-    if 'result' in msg or 'score' in msg:
-        res = Match.query.filter_by(status='finished', is_published=True).order_by(Match.match_date.desc()).limit(5).all()
-        if res:
-            lines = [f"• vs {m.opponent}: {m.home_score if m.home_score is not None else '—'}-{m.away_score if m.away_score is not None else '—'}" for m in res]
-            return jsonify({'reply': 'Recent results:\n' + '\n'.join(lines), 'bot': 'Jhapali'})
-        return jsonify({'reply': 'No results published yet.', 'bot': 'Jhapali'})
-    if any(w in msg for w in ('shop', 'jersey', 'kit', 'store', 'merchandise')):
-        return jsonify({'reply': 'Visit the Official Store for jerseys and kits — open Shop from the menu. You can also order a custom jersey with your name & number!', 'bot': 'Jhapali'})
-    if 'member' in msg or 'fan club' in msg:
-        return jsonify({'reply': 'Join the Jhapa FC family! Plans: Fan (free), Gold (1 free ticket), Premium (2 free tickets). Open Membership to register.', 'bot': 'Jhapali'})
-    if any(w in msg for w in ('squad', 'player', 'team')):
-        return jsonify({'reply': 'See Our Squad for the Elephants. Full roster is on the Squad page.', 'bot': 'Jhapali'})
-    if any(w in msg for w in ('contact', 'email', 'phone')):
-        return jsonify({'reply': 'Use the Contact page to message the club. Details are set in Admin → Settings.', 'bot': 'Jhapali'})
-    if any(w in msg for w in ('hello', 'hi', 'namaste', 'aayo')):
-        return jsonify({'reply': 'Namaste! I am Jhapali (I$H). Try: Next Match, Fixtures, Shop, Membership, Squad or Contact. Aayo Jhapali!', 'bot': 'Jhapali'})
-    return jsonify({'reply': 'I am Jhapali (I$H). Try: Next Match, Fixtures, Results, Shop, Membership, Squad or Contact. Elephants are marching!', 'bot': 'Jhapali'})
+    if not api_key:
+        msg = message.lower()
+        if 'match' in msg:
+            nm = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).first()
+            if nm:
+                return jsonify({'reply': 'Next match: vs %s.' % nm.opponent, 'bot': 'Jhapali'})
+            return jsonify({'reply': 'Fixtures coming when season starts. Aayo Jhapali!', 'bot': 'Jhapali'})
+        if 'shop' in msg or 'jersey' in msg:
+            return jsonify({'reply': 'Open Official Store or Make Your Own Jersey.', 'bot': 'Jhapali'})
+        if 'member' in msg:
+            return jsonify({'reply': 'Membership: Fan free, Gold, Premium. Open Membership page.', 'bot': 'Jhapali'})
+        return jsonify({
+            'reply': 'No AI API key in Admin Settings yet — only short FAQ. Add xAI/OpenAI key under Settings.',
+            'bot': 'Jhapali',
+            'ai': False,
+        })
+
+    return jsonify({'reply': 'AI disabled in Settings. Enable AI and Save.', 'bot': 'Jhapali'})
 
 
 @main_bp.route('/sitemap.xml')

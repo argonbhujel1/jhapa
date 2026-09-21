@@ -2344,3 +2344,17 @@ html:not([data-theme]) body {
   bottom: 9% !important;
   z-index: 4;
 }
+
+
+/* Tight double-digit numbers — no gap */
+.jp-number {
+  letter-spacing: -0.12em !important;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 0, "kern" 1;
+  word-spacing: 0 !important;
+  white-space: nowrap !important;
+}
+.jp-number,
+#previewNum {
+  letter-spacing: -0.14em !important;
+}
