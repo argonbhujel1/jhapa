@@ -1,0 +1,27 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Legend | Admin{% endblock %}
+{% block content %}
+<div class="container" style="max-width:640px;padding:40px 20px;">
+  <h2 style="color:var(--text);">{{ 'Edit' if item else 'New' }} Legend / WATN</h2>
+  <form method="POST" enctype="multipart/form-data" class="card" style="padding:24px;">
+    <div class="form-group"><label>Name *</label><input name="name" class="form-control" value="{{ item.name if item else '' }}" required></div>
+    <div class="form-group"><label>Category</label>
+      <select name="category" class="form-control">
+        <option value="Hall of Fame" {% if item and item.category=='Hall of Fame' %}selected{% endif %}>Hall of Fame</option>
+        <option value="Where Are They Now" {% if item and item.category=='Where Are They Now' %}selected{% endif %}>Where Are They Now</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Role</label><input name="role" class="form-control" value="{{ item.role if item else 'Player' }}"></div>
+    <div class="form-group"><label>Era</label><input name="era" class="form-control" value="{{ item.era if item else '' }}" placeholder="NSL 2023 / 2022 C Division"></div>
+    <div class="form-group"><label>Achievement</label><textarea name="achievement" class="form-control" rows="3">{{ item.achievement if item else '' }}</textarea></div>
+    <div class="form-group"><label>Current club (WATN)</label><input name="current_club" class="form-control" value="{{ item.current_club if item else '' }}"></div>
+    <div class="form-group"><label>Photo file</label><input type="file" name="photo" accept="image/*" class="form-control"></div>
+    <div class="form-group"><label>OR photo URL</label><input type="url" name="photo_url" class="form-control"></div>
+    {% if item and item.photo %}<p><img src="{{ item.photo|media_url }}" style="max-height:120px;border-radius:8px;"></p>{% endif %}
+    <div class="form-group"><label>Order</label><input type="number" name="order" class="form-control" value="{{ item.order if item else 0 }}"></div>
+    <div class="form-group"><label><input type="checkbox" name="is_published" {% if not item or item.is_published %}checked{% endif %}> Published</label></div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ url_for('admin.legends_list') }}" class="btn btn-outline">Cancel</a>
+  </form>
+</div>
+{% endblock %}

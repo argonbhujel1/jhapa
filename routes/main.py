@@ -90,10 +90,25 @@ def club():
     keys = ['trophy_cabinet', 'home_ground', 'club_stats', 'champions_2022',
             'timeline', 'club_records', 'season_table']
     extra = {k: ClubInfo.query.filter_by(key=k).first() for k in keys}
+    try:
+        from models import MuseumItem, ClubLegend, AllTimeXI
+        museum = MuseumItem.query.filter_by(is_published=True).order_by(MuseumItem.order, MuseumItem.id).all()
+        hall = ClubLegend.query.filter_by(is_published=True, category='Hall of Fame').order_by(ClubLegend.order).all()
+        watn = ClubLegend.query.filter_by(is_published=True, category='Where Are They Now').order_by(ClubLegend.order).all()
+        all_time_xi = AllTimeXI.query.filter_by(is_published=True).order_by(AllTimeXI.order).all()
+    except Exception:
+        museum, hall, watn, all_time_xi = [], [], [], []
+    stadium_img = None
+    try:
+        s = SiteSetting.query.filter_by(key='home_ground_image').first()
+        stadium_img = s.value if s else None
+    except Exception:
+        pass
     return render_template(
         'club.html',
         about=about, vision=vision, mission=mission, values=values,
-        established=established, **extra
+        established=established, museum=museum, hall=hall, watn=watn,
+        all_time_xi=all_time_xi, stadium_img=stadium_img, **extra
     )
 
 @main_bp.route('/leadership/<int:id>')

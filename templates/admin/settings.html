@@ -94,7 +94,18 @@
       <button type="submit" class="btn btn-primary" style="margin-top:12px;">Save Settings</button>
     
     <hr style="border-color:var(--glass-border);margin:28px 0;">
-    <h3 style="color:var(--neon);margin-bottom:12px;">Jhapali AI (I$H)</h3>
+    <h3 style="color:var(--neon);margin-bottom:12px;">Home Stadium Image
+    <div class="form-group"><label>Stadium photo (file)</label>
+      <input type="file" name="home_ground_image" accept="image/*" class="form-control">
+    </div>
+    <div class="form-group"><label>OR stadium URL</label>
+      <input type="url" name="home_ground_image_url" class="form-control">
+    </div>
+    {% if settings.get('home_ground_image') %}
+    <p><img src="{{ settings.get('home_ground_image')|media_url }}" style="max-height:140px;border-radius:10px;"></p>
+    {% endif %}
+    <hr style="margin:24px 0;border-color:var(--glass-border);">
+    Jhapali AI (I$H)</h3>
     <p class="text-muted" style="font-size:0.85rem;margin-bottom:16px;">
       Jhapali (I$H) — Real AI replies when API key is set (xAI Grok, OpenAI, or any OpenAI-compatible API).
       Leave key empty to use built-in club FAQ replies only.

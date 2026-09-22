@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, date
 from models import (
+    MuseumItem, ClubLegend, AllTimeXI,
     LeagueStanding,
     db, User, ClubInfo, Match, News, ProductCategory, Product, ProductVariant,
     MembershipPlan, Sponsor, SiteSetting, GalleryImage, Player, Leadership
@@ -516,4 +517,72 @@ Together we are stronger. One Club. One Pride.'''),
 
 
         db.session.commit()
+        
+        # Digital Museum / Legends / All-Time XI (documented notable names; admin can edit photos)
+        try:
+            from models import MuseumItem, ClubLegend, AllTimeXI
+            if ClubLegend.query.count() == 0:
+                legends = [
+                    dict(name='Anjan Bista', role='Forward', era='NSL 2023', category='Hall of Fame',
+                         achievement='Marquee player / captain for NSL debut campaign (public records).',
+                         current_club='', order=1),
+                    dict(name='Laken Limbu', role='Midfielder', era='NSL 2025', category='Hall of Fame',
+                         achievement='Team captain · Nepal national team · NSL S3 goalscorer.',
+                         current_club='Jhapa FC', order=2),
+                    dict(name='Paras Karki', role='Player', era='2022 C Division', category='Hall of Fame',
+                         achievement='Player of the Tournament — Martyr\'s Memorial C Division League 2022 (ANFA).',
+                         current_club='', order=3),
+                    dict(name='Bishal Khawas', role='Forward', era='2022 C Division', category='Hall of Fame',
+                         achievement='Scored twice in C Division title-clinching final vs Swoyambhu (ANFA).',
+                         current_club='', order=4),
+                    dict(name='Oriol Mohedano', role='Coach', era='NSL 2023', category='Where Are They Now',
+                         achievement='Head coach NSL 2023 (Oct–Dec 2023).',
+                         current_club='', order=10),
+                    dict(name='Prabesh Katuwal', role='Coach', era='NSL 2025', category='Hall of Fame',
+                         achievement='Head coach NSL Season 3 (2025).',
+                         current_club='Jhapa FC', order=5),
+                ]
+                for L in legends:
+                    db.session.add(ClubLegend(**L, is_published=True))
+            if AllTimeXI.query.count() == 0:
+                # Notable XI based on public NSL / club figures — editable in admin
+                xi = [
+                    ('GK', 1, 'Stefan Cupic', 25, 'NSL era goalkeeper (club site archive)'),
+                    ('CB', 2, 'Chhiring Lama', 4, 'NSL defender'),
+                    ('CB', 3, 'Ashish Gurung', 5, 'NSL / C Division era'),
+                    ('FB', 4, 'Taranath Rajbanshi', 2, 'Club archive'),
+                    ('CM', 5, 'Laken Limbu', 10, 'Captain · NSL'),
+                    ('CM', 6, 'Abinash Syangtan', 8, 'NSL midfielder'),
+                    ('AM', 7, 'Lazar Arsic', 11, 'NSL S3 goalscorer'),
+                    ('WG', 8, 'Anjan Bista', 7, 'Marquee · NSL debut'),
+                    ('ST', 9, 'Alhaji Gero', 9, 'NSL S3 top scorer'),
+                    ('ST', 10, 'Bishal Khawas', None, 'C Division title final hero'),
+                    ('MF', 11, 'Paras Karki', None, 'C Division Player of the Tournament'),
+                ]
+                for pos, order, name, num, note in xi:
+                    db.session.add(AllTimeXI(
+                        position=pos, slot=order, name=name, number=num, note=note,
+                        order=order, is_published=True
+                    ))
+            if MuseumItem.query.count() == 0:
+                db.session.add(MuseumItem(
+                    title='Martyr\'s Memorial C Division Champions 2022',
+                    category='Trophy', year='2022',
+                    description='Jhapa FC clinched C Division title and promotion (ANFA).',
+                    order=1, is_published=True
+                ))
+                db.session.add(MuseumItem(
+                    title='NSL Fair Play Award — Season 3',
+                    category='Trophy', year='2025',
+                    description='Jhapa FC named Fair Play Award winners in NSL Season 3.',
+                    order=2, is_published=True
+                ))
+            # Stadium capacity note
+            hg = ClubInfo.query.filter_by(key='home_ground').first()
+            if hg:
+                hg.content = 'Domalal Rajbanshi Ground\nLocation: Birtamod, Jhapa, Koshi Province, Nepal\nCapacity: approx. 5,000–10,000 (public listings vary)\nHome venue of Jhapa FC'
+            print('Museum / Legends / XI seeded')
+        except Exception as e:
+            print('museum seed:', e)
+
         print('Database seeded successfully.')

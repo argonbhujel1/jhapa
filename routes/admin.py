@@ -3,7 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from models import (
     db, User, Match, News, Product, ProductCategory, ProductVariant,
     MembershipPlan, Member, ContactMessage, Player, Leadership, GalleryImage,
-    Sponsor, Order, ClubInfo, SiteSetting, LeagueStanding, TopPerformer
+    Sponsor, Order, ClubInfo, SiteSetting, LeagueStanding, TopPerformer, MuseumItem, ClubLegend, AllTimeXI
 )
 from utils.helpers import slugify, save_upload, save_image_from_url, resolve_image_input
 from datetime import datetime
@@ -588,6 +588,128 @@ def gallery_delete(id):
     return redirect(url_for('admin.gallery_list'))
 
 # ---------- Settings ----------
+
+# ---------- Digital Museum ----------
+@admin_bp.route('/museum')
+@admin_required
+def museum_list():
+    items = MuseumItem.query.order_by(MuseumItem.order, MuseumItem.id).all()
+    return render_template('admin/museum_list.html', items=items)
+
+@admin_bp.route('/museum/new', methods=['GET', 'POST'])
+@admin_bp.route('/museum/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required
+def museum_edit(id=None):
+    item = MuseumItem.query.get(id) if id else None
+    if request.method == 'POST':
+        if not item:
+            item = MuseumItem(title='')
+            db.session.add(item)
+        item.title = request.form.get('title', '').strip()
+        item.category = request.form.get('category', 'Photo').strip()
+        item.year = request.form.get('year', '').strip()
+        item.description = request.form.get('description', '').strip()
+        item.order = int(request.form.get('order') or 0)
+        item.is_published = request.form.get('is_published') == 'on'
+        path = resolve_image_input('image', 'image_url', request.form, request.files, 'museum')
+        if path:
+            item.image = path
+        db.session.commit()
+        flash('Museum item saved.', 'success')
+        return redirect(url_for('admin.museum_list'))
+    return render_template('admin/museum_form.html', item=item)
+
+@admin_bp.route('/museum/<int:id>/delete', methods=['POST'])
+@admin_required
+def museum_delete(id):
+    item = MuseumItem.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Deleted.', 'success')
+    return redirect(url_for('admin.museum_list'))
+
+# ---------- Legends / WATN ----------
+@admin_bp.route('/legends')
+@admin_required
+def legends_list():
+    items = ClubLegend.query.order_by(ClubLegend.order, ClubLegend.id).all()
+    return render_template('admin/legends_list.html', items=items)
+
+@admin_bp.route('/legends/new', methods=['GET', 'POST'])
+@admin_bp.route('/legends/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required
+def legends_edit(id=None):
+    item = ClubLegend.query.get(id) if id else None
+    if request.method == 'POST':
+        if not item:
+            item = ClubLegend(name='')
+            db.session.add(item)
+        item.name = request.form.get('name', '').strip()
+        item.role = request.form.get('role', 'Player').strip()
+        item.era = request.form.get('era', '').strip()
+        item.achievement = request.form.get('achievement', '').strip()
+        item.current_club = request.form.get('current_club', '').strip()
+        item.category = request.form.get('category', 'Hall of Fame').strip()
+        item.order = int(request.form.get('order') or 0)
+        item.is_published = request.form.get('is_published') == 'on'
+        path = resolve_image_input('photo', 'photo_url', request.form, request.files, 'legends')
+        if path:
+            item.photo = path
+        db.session.commit()
+        flash('Legend saved.', 'success')
+        return redirect(url_for('admin.legends_list'))
+    return render_template('admin/legends_form.html', item=item)
+
+@admin_bp.route('/legends/<int:id>/delete', methods=['POST'])
+@admin_required
+def legends_delete(id):
+    item = ClubLegend.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Deleted.', 'success')
+    return redirect(url_for('admin.legends_list'))
+
+# ---------- All-Time XI ----------
+@admin_bp.route('/all-time-xi')
+@admin_required
+def xi_list():
+    items = AllTimeXI.query.order_by(AllTimeXI.order, AllTimeXI.id).all()
+    return render_template('admin/xi_list.html', items=items)
+
+@admin_bp.route('/all-time-xi/new', methods=['GET', 'POST'])
+@admin_bp.route('/all-time-xi/<int:id>/edit', methods=['GET', 'POST'])
+@admin_required
+def xi_edit(id=None):
+    item = AllTimeXI.query.get(id) if id else None
+    if request.method == 'POST':
+        if not item:
+            item = AllTimeXI(position='CM', name='')
+            db.session.add(item)
+        item.position = request.form.get('position', 'CM').strip()
+        item.name = request.form.get('name', '').strip()
+        num = request.form.get('number', '').strip()
+        item.number = int(num) if num.isdigit() else None
+        item.note = request.form.get('note', '').strip()
+        item.order = int(request.form.get('order') or 0)
+        item.is_published = request.form.get('is_published') == 'on'
+        path = resolve_image_input('photo', 'photo_url', request.form, request.files, 'xi')
+        if path:
+            item.photo = path
+        db.session.commit()
+        flash('All-Time XI slot saved.', 'success')
+        return redirect(url_for('admin.xi_list'))
+    return render_template('admin/xi_form.html', item=item)
+
+@admin_bp.route('/all-time-xi/<int:id>/delete', methods=['POST'])
+@admin_required
+def xi_delete(id):
+    item = AllTimeXI.query.get_or_404(id)
+    db.session.delete(item)
+    db.session.commit()
+    flash('Deleted.', 'success')
+    return redirect(url_for('admin.xi_list'))
+
+
 @admin_bp.route('/settings', methods=['GET', 'POST'])
 @admin_required
 def settings():
@@ -613,6 +735,14 @@ def settings():
                 s.value = path
             else:
                 db.session.add(SiteSetting(key='club_logo', value=path))
+        path2 = resolve_image_input('home_ground_image', 'home_ground_image_url', request.form, request.files, 'stadium')
+        if path2:
+            s2 = SiteSetting.query.filter_by(key='home_ground_image').first()
+            if s2:
+                s2.value = path2
+            else:
+                db.session.add(SiteSetting(key='home_ground_image', value=path2))
+
         bam_path = resolve_image_input('bam_logo', 'bam_logo_url', request.form, request.files, 'branding')
         if bam_path:
             s = SiteSetting.query.filter_by(key='bam_logo').first()

@@ -288,3 +288,46 @@ class TopPerformer(db.Model):
     order = db.Column(db.Integer, default=0)
     is_published = db.Column(db.Boolean, default=True)
     season = db.Column(db.String(20), default='2025/26')
+
+
+class MuseumItem(db.Model):
+    """Digital Museum — posters, kits, trophies, photos."""
+    __tablename__ = 'museum_items'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    category = db.Column(db.String(50), default='Photo')  # Photo, Kit, Trophy, Poster, Ticket, Document
+    year = db.Column(db.String(20))
+    image = db.Column(db.Text)
+    description = db.Column(db.Text)
+    order = db.Column(db.Integer, default=0)
+    is_published = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class ClubLegend(db.Model):
+    """Hall of Fame / Where Are They Now / notable figures."""
+    __tablename__ = 'club_legends'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(80), default='Player')  # Player, Coach, Staff
+    era = db.Column(db.String(40))  # e.g. 2022 C Division, NSL 2023
+    achievement = db.Column(db.Text)
+    current_club = db.Column(db.String(120))  # Where Are They Now
+    photo = db.Column(db.Text)
+    category = db.Column(db.String(40), default='Hall of Fame')  # Hall of Fame, Where Are They Now
+    order = db.Column(db.Integer, default=0)
+    is_published = db.Column(db.Boolean, default=True)
+
+
+class AllTimeXI(db.Model):
+    """Editable club XI slots — admin managed (not invented official lineups)."""
+    __tablename__ = 'all_time_xi'
+    id = db.Column(db.Integer, primary_key=True)
+    position = db.Column(db.String(30), nullable=False)  # GK, RB, CB, LB, CM, AM, ST...
+    slot = db.Column(db.Integer, default=1)
+    name = db.Column(db.String(100), nullable=False)
+    number = db.Column(db.Integer)
+    note = db.Column(db.String(200))
+    photo = db.Column(db.Text)
+    order = db.Column(db.Integer, default=0)
+    is_published = db.Column(db.Boolean, default=True)
