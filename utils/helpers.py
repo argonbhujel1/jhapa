@@ -180,30 +180,33 @@ def format_currency(amount):
 
 
 def fetch_player_photo_url(player_name):
-    """Find a public player photo URL.
-    Order: TheSportsDB → DuckDuckGo images → Wikipedia.
-    Query bias: "<name> Jhapa FC football" style searches.
+    """Conservative photo lookup — TheSportsDB then Wikipedia only.
+    DuckDuckGo/Google-style scrape removed (wrong logos & faces).
     """
     if not player_name or not str(player_name).strip():
         return None
     import json
-    import re
     import urllib.parse
     name = str(player_name).strip()
     headers = {
-        'User-Agent': 'Mozilla/5.0 (compatible; JhapaFCBot/1.0; +https://jhapacityfc.vercel.app)',
-        'Accept': 'application/json,text/html',
+        'User-Agent': 'JhapaFCOfficialSite/1.0 (https://jhapacityfc.vercel.app)',
+        'Accept': 'application/json',
     }
 
-    def _get(url, timeout=5):
+    def _get_json(url, timeout=4):
         req = urllib.request.Request(url, headers=headers)
         with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.read()
+            return json.loads(resp.read().decode('utf-8', errors='ignore'))
 
-    def _get_json(url, timeout=5):
-        return json.loads(_get(url, timeout).decode('utf-8', errors='ignore'))
+    def _ok_url(u):
+        if not u or not str(u).startswith('http'):
+            return False
+        low = str(u).lower()
+        if any(x in low for x in ('.svg', 'logo', 'sprite', 'favicon', 'icon-', 'placeholder')):
+            return False
+        return True
 
-    # --- 1 TheSportsDB ---
+    # TheSportsDB — prefer cutout (player silhouette on transparent)
     try:
         data = _get_json(
             'https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p='
@@ -211,60 +214,20 @@ def fetch_player_photo_url(player_name):
         )
         for pl in (data.get('player') or []):
             sport = (pl.get('strSport') or '').lower()
-            thumb = pl.get('strCutout') or pl.get('strThumb') or pl.get('strRender')
-            if thumb and thumb.startswith('http') and (
-                not sport or 'soccer' in sport or 'football' in sport
-            ):
-                return thumb
-        if data.get('player'):
-            t = data['player'][0].get('strCutout') or data['player'][0].get('strThumb')
-            if t and t.startswith('http'):
-                return t
-    except Exception:
-        pass
-
-    # --- 2 DuckDuckGo image (unofficial, Google-like search) ---
-    try:
-        queries = [
-            name + ' Jhapa FC football',
-            name + ' played for Jhapa FC',
-            name + ' Nepal footballer',
-            name + ' footballer',
-        ]
-        for q in queries:
-            # Step A: get vqd token
-            html = _get(
-                'https://duckduckgo.com/?q=' + urllib.parse.quote(q) + '&iax=images&ia=images',
-                timeout=5,
-            ).decode('utf-8', errors='ignore')
-            m = re.search(r'vqd=([\'"])([^\'"]+)\1', html) or re.search(r'vqd=([^&]+)&', html)
-            vqd = m.group(2) if m and m.lastindex >= 2 else (m.group(1) if m else None)
-            if not vqd:
+            if sport and 'soccer' not in sport and 'football' not in sport:
                 continue
-            api = (
-                'https://duckduckgo.com/i.js?l=us-en&o=json&q='
-                + urllib.parse.quote(q)
-                + '&vqd=' + urllib.parse.quote(vqd)
-                + '&f=,,,,,&p=1'
-            )
-            headers2 = dict(headers)
-            headers2['Referer'] = 'https://duckduckgo.com/'
-            req = urllib.request.Request(api, headers=headers2)
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                idata = json.loads(resp.read().decode('utf-8', errors='ignore'))
-            for img in (idata.get('results') or [])[:8]:
-                url = img.get('image') or img.get('thumbnail')
-                if not url or not url.startswith('http'):
-                    continue
-                low = url.lower()
-                # skip obvious logos / tiny icons
-                if any(x in low for x in ('.svg', 'logo', 'icon', 'sprite', 'favicon')):
-                    continue
-                return url
+            # name must roughly match
+            pn = (pl.get('strPlayer') or '').lower()
+            if name.split()[0].lower() not in pn and name.split()[-1].lower() not in pn:
+                continue
+            for key in ('strCutout', 'strThumb', 'strRender'):
+                thumb = pl.get(key)
+                if _ok_url(thumb):
+                    return thumb
     except Exception:
         pass
 
-    # --- 3 Wikipedia ---
+    # Wikipedia — only if page title contains player surname
     overrides = {
         'Anjan Bista': 'Anjan_Bista',
         'Laken Limbu': 'Laken_Limbu',
@@ -273,22 +236,30 @@ def fetch_player_photo_url(player_name):
         'Stefan Čupić': 'Stefan_Čupić',
         'Lazar Arsic': 'Lazar_Arsić',
         'Lazar Arsić': 'Lazar_Arsić',
+        'Nemanja Lemajic': 'Nemanja_Lemajić',
+        'Nemanja Lemajić': 'Nemanja_Lemajić',
     }
     titles = []
     if name in overrides:
         titles.append(overrides[name])
-    titles += [name.replace(' ', '_'), name.replace(' ', '_') + '_(footballer)']
+    titles.append(name.replace(' ', '_'))
+    titles.append(name.replace(' ', '_') + '_(footballer)')
     try:
         sdata = _get_json(
             'https://en.wikipedia.org/w/api.php?action=query&list=search'
-            '&srlimit=3&format=json&srsearch=' + urllib.parse.quote(name + ' football Nepal')
+            '&srlimit=5&format=json&srsearch='
+            + urllib.parse.quote('"' + name + '" footballer OR football Nepal')
         )
+        surname = name.split()[-1].lower()
         for hit in (sdata.get('query') or {}).get('search') or []:
-            if hit.get('title'):
-                titles.append(hit['title'].replace(' ', '_'))
+            t = hit.get('title') or ''
+            if surname in t.lower().replace('č', 'c').replace('ć', 'c'):
+                titles.append(t.replace(' ', '_'))
     except Exception:
         pass
+
     seen = set()
+    surname = name.split()[-1].lower()
     for title in titles:
         if not title or title in seen:
             continue
@@ -299,8 +270,12 @@ def fetch_player_photo_url(player_name):
             )
             if data.get('type') == 'disambiguation':
                 continue
-            thumb = (data.get('thumbnail') or {}).get('source') or (data.get('originalimage') or {}).get('source')
-            if thumb:
+            page_title = (data.get('title') or '').lower()
+            # reject pages that clearly aren't the person
+            if surname not in page_title.replace('č', 'c').replace('ć', 'c'):
+                continue
+            thumb = (data.get('thumbnail') or {}).get('source')
+            if _ok_url(thumb):
                 return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-')
         except Exception:
             continue

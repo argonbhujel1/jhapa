@@ -342,6 +342,31 @@ def players_list():
     items = Player.query.order_by(Player.order).all()
     return render_template('admin/players_list.html', items=items)
 
+
+@admin_bp.route('/players/clear-bad-photos', methods=['POST'])
+@admin_required
+def players_clear_bad_photos():
+    """Remove wrong auto-fetched external photos (keep Cloudinary/local)."""
+    try:
+        n = 0
+        for pl in Player.query.all():
+            if not pl.photo:
+                continue
+            p = str(pl.photo).lower()
+            if 'cloudinary.com' in p or p.startswith('/uploads/') or 'res.cloudinary' in p:
+                continue
+            if 'thesportsdb.com' in p:
+                continue
+            pl.photo = None
+            n += 1
+        db.session.commit()
+        flash('Cleared %s unreliable photos. Re-fetch or upload correct ones.' % n, 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(str(e), 'error')
+    return redirect(url_for('admin.players_list'))
+
+
 @admin_bp.route('/players/fetch-photos', methods=['POST'])
 @admin_required
 def players_fetch_photos():

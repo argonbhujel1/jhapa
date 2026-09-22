@@ -694,4 +694,34 @@ Together we are stronger. One Club. One Pride.'''),
         
         # Photo auto-fetch only via Admin → Players → Auto-fetch (avoids Vercel timeout)
 
+        
+        # Clear unreliable auto-fetched photos (DDG logos / wrong faces)
+        try:
+            cleared = 0
+            for pl in Player.query.all():
+                if not pl.photo:
+                    continue
+                p = str(pl.photo).lower()
+                # Keep Cloudinary and local uploads
+                if 'cloudinary.com' in p or p.startswith('/uploads/') or 'res.cloudinary' in p:
+                    continue
+                # Drop external scrape results that are often wrong
+                if any(x in p for x in (
+                    'duckduckgo', 'external-content', 'bing.com', 'google',
+                    'lalitpur', 'logo', 'wikimedia.org/wikipedia/commons'
+                )):
+                    # keep only if clearly a person cutout from sportsdb
+                    if 'thesportsdb.com' in p:
+                        continue
+                    pl.photo = None
+                    cleared += 1
+                elif p.startswith('http') and 'thesportsdb.com' not in p and 'wikipedia' not in p:
+                    pl.photo = None
+                    cleared += 1
+            if cleared:
+                db.session.commit()
+            print('Cleared bad auto photos:', cleared)
+        except Exception as e:
+            print('clear photos:', e)
+
         print('Database seeded successfully.')

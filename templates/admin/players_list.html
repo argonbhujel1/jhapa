@@ -26,8 +26,11 @@
     <div class="admin-header-bar">
       <h1>Players</h1>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <form method="POST" action="{{ url_for('admin.players_clear_bad_photos') }}">
+          <button type="submit" class="btn btn-outline">Clear bad auto-photos</button>
+        </form>
         <form method="POST" action="{{ url_for('admin.players_fetch_photos') }}">
-          <button type="submit" class="btn btn-outline">Auto-fetch photos (Wikipedia)</button>
+          <button type="submit" class="btn btn-outline">Auto-fetch photos (safe sources)</button>
         </form>
         <a href="{{ url_for('admin.player_edit') }}" class="btn btn-primary">+ Add New</a>
       </div>
