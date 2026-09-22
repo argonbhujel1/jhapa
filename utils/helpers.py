@@ -180,44 +180,91 @@ def format_currency(amount):
 
 
 def fetch_player_photo_url(player_name):
-    """Public portrait URL for a player. Tries TheSportsDB then Wikipedia.
-    Returns https URL or None. Admin-uploaded photo always wins if set.
+    """Find a public player photo URL.
+    Order: TheSportsDB → DuckDuckGo images → Wikipedia.
+    Query bias: "<name> Jhapa FC football" style searches.
     """
     if not player_name or not str(player_name).strip():
         return None
     import json
+    import re
     import urllib.parse
     name = str(player_name).strip()
     headers = {
-        'User-Agent': 'JhapaFCOfficialSite/1.0 (https://jhapacityfc.vercel.app)',
-        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (compatible; JhapaFCBot/1.0; +https://jhapacityfc.vercel.app)',
+        'Accept': 'application/json,text/html',
     }
 
-    def _get_json(url):
+    def _get(url, timeout=5):
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=4) as resp:
-            return json.loads(resp.read().decode('utf-8', errors='ignore'))
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.read()
 
-    # 1) TheSportsDB free search (no key needed for v1/3)
+    def _get_json(url, timeout=5):
+        return json.loads(_get(url, timeout).decode('utf-8', errors='ignore'))
+
+    # --- 1 TheSportsDB ---
     try:
-        q = urllib.parse.quote(name)
-        data = _get_json('https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=' + q)
-        players = data.get('player') or []
-        for pl in players:
-            # Prefer football
+        data = _get_json(
+            'https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p='
+            + urllib.parse.quote(name)
+        )
+        for pl in (data.get('player') or []):
             sport = (pl.get('strSport') or '').lower()
             thumb = pl.get('strCutout') or pl.get('strThumb') or pl.get('strRender')
-            if thumb and thumb.startswith('http'):
-                if not sport or 'soccer' in sport or 'football' in sport:
-                    return thumb
-        if players:
-            thumb = players[0].get('strCutout') or players[0].get('strThumb')
-            if thumb and thumb.startswith('http'):
+            if thumb and thumb.startswith('http') and (
+                not sport or 'soccer' in sport or 'football' in sport
+            ):
                 return thumb
+        if data.get('player'):
+            t = data['player'][0].get('strCutout') or data['player'][0].get('strThumb')
+            if t and t.startswith('http'):
+                return t
     except Exception:
         pass
 
-    # 2) Wikipedia summary / search
+    # --- 2 DuckDuckGo image (unofficial, Google-like search) ---
+    try:
+        queries = [
+            name + ' Jhapa FC football',
+            name + ' played for Jhapa FC',
+            name + ' Nepal footballer',
+            name + ' footballer',
+        ]
+        for q in queries:
+            # Step A: get vqd token
+            html = _get(
+                'https://duckduckgo.com/?q=' + urllib.parse.quote(q) + '&iax=images&ia=images',
+                timeout=5,
+            ).decode('utf-8', errors='ignore')
+            m = re.search(r'vqd=([\'"])([^\'"]+)\1', html) or re.search(r'vqd=([^&]+)&', html)
+            vqd = m.group(2) if m and m.lastindex >= 2 else (m.group(1) if m else None)
+            if not vqd:
+                continue
+            api = (
+                'https://duckduckgo.com/i.js?l=us-en&o=json&q='
+                + urllib.parse.quote(q)
+                + '&vqd=' + urllib.parse.quote(vqd)
+                + '&f=,,,,,&p=1'
+            )
+            headers2 = dict(headers)
+            headers2['Referer'] = 'https://duckduckgo.com/'
+            req = urllib.request.Request(api, headers=headers2)
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                idata = json.loads(resp.read().decode('utf-8', errors='ignore'))
+            for img in (idata.get('results') or [])[:8]:
+                url = img.get('image') or img.get('thumbnail')
+                if not url or not url.startswith('http'):
+                    continue
+                low = url.lower()
+                # skip obvious logos / tiny icons
+                if any(x in low for x in ('.svg', 'logo', 'icon', 'sprite', 'favicon')):
+                    continue
+                return url
+    except Exception:
+        pass
+
+    # --- 3 Wikipedia ---
     overrides = {
         'Anjan Bista': 'Anjan_Bista',
         'Laken Limbu': 'Laken_Limbu',
@@ -226,8 +273,6 @@ def fetch_player_photo_url(player_name):
         'Stefan Čupić': 'Stefan_Čupić',
         'Lazar Arsic': 'Lazar_Arsić',
         'Lazar Arsić': 'Lazar_Arsić',
-        'Nemanja Lemajic': 'Nemanja_Lemajić',
-        'Nemanja Lemajić': 'Nemanja_Lemajić',
     }
     titles = []
     if name in overrides:
@@ -236,14 +281,13 @@ def fetch_player_photo_url(player_name):
     try:
         sdata = _get_json(
             'https://en.wikipedia.org/w/api.php?action=query&list=search'
-            '&srlimit=3&format=json&srsearch=' + urllib.parse.quote(name + ' football')
+            '&srlimit=3&format=json&srsearch=' + urllib.parse.quote(name + ' football Nepal')
         )
         for hit in (sdata.get('query') or {}).get('search') or []:
             if hit.get('title'):
                 titles.append(hit['title'].replace(' ', '_'))
     except Exception:
         pass
-
     seen = set()
     for title in titles:
         if not title or title in seen:
@@ -257,7 +301,7 @@ def fetch_player_photo_url(player_name):
                 continue
             thumb = (data.get('thumbnail') or {}).get('source') or (data.get('originalimage') or {}).get('source')
             if thumb:
-                return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-').replace('/120px-', '/300px-')
+                return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-')
         except Exception:
             continue
     return None

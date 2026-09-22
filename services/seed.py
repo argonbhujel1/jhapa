@@ -477,18 +477,20 @@ Together we are stronger. One Club. One Pride.'''),
         print('Archive players ensured in squad')
 
 
-        # Top performers — NSL Season 3 goal scorers only (verified match reports)
+        # Top performers till now (documented across eras)
         try:
             from models import TopPerformer
             scorers = [
-                ('Alhaji Gero', 'Top Scorer', 1),
-                ('Lazar Arsic', 'Goals', 1),
-                ('Laken Limbu', 'Goals', 1),
+                ('Alhaji Gero', 'Goals', 1, 'NSL S3 2025'),
+                ('Lazar Arsic', 'Goals', 1, 'NSL S3 2025'),
+                ('Laken Limbu', 'Goals', 1, 'NSL S3 2025'),
+                ('Anjan Bista', 'Goals', 1, 'NSL 2022–23'),
+                ('Bishal Khawas', 'Goals', 2, 'C Div Final 2022'),
+                ('Stefan Cupic', 'Clean Sheets', 5, 'NSL 2023'),
             ]
-            # Replace stale mixed list with accurate S3 scorers
             TopPerformer.query.delete()
             db.session.flush()
-            for i, (name, cat, val) in enumerate(scorers):
+            for i, (name, cat, val, season) in enumerate(scorers):
                 photo = None
                 pl = Player.query.filter_by(name=name).first()
                 if not pl:
@@ -506,9 +508,9 @@ Together we are stronger. One Club. One Pride.'''),
                     photo=photo,
                     order=i,
                     is_published=True,
-                    season='NSL S3 2025',
+                    season=season,
                 ))
-            print('Top performers: NSL S3 scorers only')
+            print('Top performers till now seeded')
         except Exception as e:
             print('top performers seed:', e)
 

@@ -144,7 +144,7 @@
 
       <div class="home-tp-col">
         <h2 class="section-title tp-home-title" style="text-align:left;">TOP PERFORMERS</h2>
-        <p class="section-sub" style="text-align:left;margin-bottom:16px;">NSL Season 3 scorers</p>
+        <p class="section-sub" style="text-align:left;margin-bottom:16px;">Top performers till now</p>
         {% if performers %}
         <div class="tp-home-grid" style="grid-template-columns:1fr;gap:14px;">
           {% for p in performers %}
@@ -157,7 +157,7 @@
               {% endif %}
             </div>
             <div class="tp-info" style="text-align:left;">
-              <div class="tp-cat" style="font-size:0.7rem;">{{ p.category|upper }}</div>
+              <div class="tp-cat" style="font-size:0.7rem;">{{ p.category|upper }}{% if p.season %} · {{ p.season }}{% endif %}</div>
               <div class="tp-name" style="font-size:1rem;">{{ p.name|upper }}</div>
               <div class="tp-stat" style="font-size:0.9rem;">{{ p.value }} {% if 'Assist' in p.category %}ASSISTS{% elif 'Clean' in p.category %}CS{% else %}GOAL{% if p.value != 1 %}S{% endif %}{% endif %}</div>
             </div>
