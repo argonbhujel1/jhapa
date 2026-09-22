@@ -136,6 +136,20 @@ def seed_all(app):
             s = SiteSetting.query.filter_by(key='fair_play_award').first()
             s.value = 'Jhapa FC — NSL Season 3 Fair Play Award Winner'
 
+
+        # Remove old demo / non-S3 matches and old league tables
+        try:
+            for m in Match.query.all():
+                if (m.competition or '') != 'Nepal Super League Season 3':
+                    db.session.delete(m)
+            for row in LeagueStanding.query.all():
+                if (row.season or '') != 'NSL S3 2025':
+                    db.session.delete(row)
+            db.session.flush()
+            print('Cleaned non-NSL-S3 matches and standings')
+        except Exception as e:
+            print('cleanup matches:', e)
+
         # Demo News
         if News.query.count() == 0:
             news_items = [
@@ -323,6 +337,43 @@ Together we are stronger. One Club. One Pride.'''),
                         order=pl.get('order', i),
                     ))
             print('NSL players seeded')
+
+        # Top performers from NSL S3 scorers (link squad photos)
+        try:
+            from models import TopPerformer
+            # Clear old performers
+            TopPerformer.query.delete()
+            db.session.flush()
+            scorers = [
+                ('Alhaji Gero', 'Top Scorer', 1),
+                ('Lazar Arsic', 'Goals', 1),
+                ('Laken Limbu', 'Goals', 1),
+            ]
+            for i, (name, cat, val) in enumerate(scorers):
+                photo = None
+                pl = Player.query.filter(Player.name.ilike('%' + name.split()[-1] + '%')).first()
+                if not pl:
+                    pl = Player.query.filter(Player.name.ilike('%' + name + '%')).first()
+                if pl and pl.photo:
+                    photo = pl.photo
+                # exact name match preferred
+                pl2 = Player.query.filter_by(name=name).first()
+                if pl2:
+                    if pl2.photo:
+                        photo = pl2.photo
+                    name = pl2.name
+                db.session.add(TopPerformer(
+                    name=name,
+                    category=cat,
+                    value=val,
+                    team='Jhapa FC',
+                    photo=photo,
+                    order=i,
+                ))
+            print('Top performers seeded from NSL S3')
+        except Exception as e:
+            print('top performers seed:', e)
+
 
         # Leadership — publicly named roles only
         if Leadership.query.filter_by(section='Technical Team', position='Full Stack Engineer').first() is None:

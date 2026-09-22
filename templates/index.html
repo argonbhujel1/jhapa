@@ -84,40 +84,81 @@
       </div>
     </div>
 
-    <h2 class="section-title tp-home-title">TOP PERFORMERS</h2>
-    <p class="section-sub">Standout players of Jhapa FC</p>
-
-    {% if performers %}
-    <div class="tp-home-grid">
-      {% for p in performers %}
-      <div class="tp-card tp-card-neon">
-        <div class="tp-info">
-          <div class="tp-cat">{{ p.category|upper }}</div>
-          <div class="tp-stat">{{ p.value }} {% if 'Assist' in p.category %}ASSISTS{% elif 'Clean' in p.category %}CS{% elif 'Scorer' in p.category or 'Goal' in p.category %}GOALS{% else %}{% endif %}</div>
-          <div class="tp-name">{{ p.name|upper }}</div>
+    <div class="home-table-performers" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:start;">
+      <div class="home-league-col">
+        <h2 class="section-title" style="text-align:left;margin-bottom:8px;">LEAGUE TABLE</h2>
+        <p class="section-sub" style="text-align:left;margin-bottom:16px;">NSL Season 3 — Final</p>
+        {% if standings %}
+        <div class="card" style="padding:0;overflow:auto;">
+          <table class="admin-table" style="margin:0;font-size:0.85rem;">
+            <thead>
+              <tr>
+                <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pts</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for s in standings %}
+              <tr {% if s.is_jhapa %}style="background:rgba(0,240,255,0.08);"{% endif %}>
+                <td>{{ s.position }}</td>
+                <td><strong {% if s.is_jhapa %}style="color:var(--neon);"{% endif %}>{{ s.team_name }}{% if s.is_jhapa %} ★{% endif %}</strong></td>
+                <td>{{ s.played }}</td>
+                <td>{{ s.won }}</td>
+                <td>{{ s.drawn }}</td>
+                <td>{{ s.lost }}</td>
+                <td>{{ s.goals_for }}</td>
+                <td>{{ s.goals_against }}</td>
+                <td><strong>{{ s.points }}</strong></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
         </div>
-        <div class="tp-photo">
-          {% if p.photo %}
-          <img src="{{ p.photo|media_url }}" alt="{{ p.name }}">
-          {% else %}
-          <div class="tp-photo-ph">⚽</div>
-          {% endif %}
+        <div class="mt-2">
+          <a href="{{ url_for('main.matches', tab='table') }}" class="btn btn-outline btn-sm">Full Table</a>
         </div>
+        {% else %}
+        <div class="coming-soon" style="padding:24px;"><p>League table coming soon</p></div>
+        {% endif %}
       </div>
-      {% endfor %}
+
+      <div class="home-tp-col">
+        <h2 class="section-title tp-home-title" style="text-align:left;">TOP PERFORMERS</h2>
+        <p class="section-sub" style="text-align:left;margin-bottom:16px;">NSL Season 3 scorers</p>
+        {% if performers %}
+        <div class="tp-home-grid" style="grid-template-columns:1fr;gap:14px;">
+          {% for p in performers %}
+          <div class="tp-card tp-card-neon" style="display:flex;align-items:center;gap:14px;padding:12px 16px;">
+            <div class="tp-photo" style="width:64px;height:64px;flex-shrink:0;border-radius:50%;overflow:hidden;border:2px solid rgba(0,240,255,0.35);">
+              {% if p.photo %}
+              <img src="{{ p.photo|media_url }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              <div class="tp-photo-ph" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">⚽</div>
+              {% endif %}
+            </div>
+            <div class="tp-info" style="text-align:left;">
+              <div class="tp-cat" style="font-size:0.7rem;">{{ p.category|upper }}</div>
+              <div class="tp-name" style="font-size:1rem;">{{ p.name|upper }}</div>
+              <div class="tp-stat" style="font-size:0.9rem;">{{ p.value }} {% if 'Assist' in p.category %}ASSISTS{% elif 'Clean' in p.category %}CS{% else %}GOAL{% if p.value != 1 %}S{% endif %}{% endif %}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-2">
+          <a href="{{ url_for('main.matches', tab='performers') }}" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        {% else %}
+        <div class="coming-soon" style="padding:24px;">
+          <h2>Top performers coming soon</h2>
+          <p>Admin → Top Performers · squad photos auto-link when names match.</p>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    <div class="text-center mt-3">
-      <a href="{{ url_for('main.matches', tab='performers') }}" class="btn btn-outline">View All Performers</a>
-      <a href="{{ url_for('main.matches', tab='table') }}" class="btn btn-ghost" style="margin-left:8px;">League Table</a>
-    </div>
-    {% else %}
-    <div class="coming-soon" style="padding:40px;">
-      <div class="icon">⭐</div>
-      <h2>Top performers coming soon</h2>
-      <p>Admin → Top Performers बाट photo सहित add गर्नुहोस्।</p>
-    </div>
-    {% endif %}
-  </div>
+    <style>
+      @media (max-width: 900px) {
+        .home-table-performers { grid-template-columns: 1fr !important; }
+      }
+    </style>
 </section>
 
 <section class="section">
