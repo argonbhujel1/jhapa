@@ -68,9 +68,20 @@
 
 <section class="section home-performers-section">
   <div class="container">
+    <div class="fair-play-banner card" style="padding:28px 24px;margin-bottom:28px;text-align:center;border:1px solid rgba(253,224,71,0.35);box-shadow:0 0 28px rgba(253,224,71,0.12);">
+      <p style="color:#fde047;font-weight:800;margin:0;letter-spacing:2px;font-family:var(--font-display);font-size:0.95rem;">🏆 FAIR PLAY AWARD</p>
+      <h2 style="color:#fff;margin:10px 0 6px;font-family:var(--font-display);font-size:clamp(1.3rem,3vw,1.8rem);">JHAPA FC</h2>
+      <p class="text-muted" style="margin:0;font-size:0.95rem;">Nepal Super League <strong style="color:var(--text);">Season 3</strong> — Fair Play Award Winner</p>
+      <p style="color:var(--neon);margin:12px 0 0;font-size:0.85rem;letter-spacing:1px;">Discipline · Respect · The Elephants Way</p>
+    </div>
+
     <div class="season-note card" style="padding:20px 24px;margin-bottom:36px;text-align:center;">
-      <p style="color:var(--neon);font-weight:600;margin:0;letter-spacing:1px;">📅 SEASON UPDATE</p>
-      <p class="text-muted" style="margin:8px 0 0;">This season starts at the <strong style="color:var(--text);">end of March</strong>. Fixtures, results and live match centre will open then.</p>
+      <p style="color:var(--neon);font-weight:600;margin:0;letter-spacing:1px;">📅 NSL SEASON 3 COMPLETE</p>
+      <p class="text-muted" style="margin:8px 0 0;">Final position: <strong style="color:var(--text);">6th</strong> · 5 draws · 1 loss · <strong style="color:var(--text);">5 points</strong>. Full results and league table on Matches.</p>
+      <div class="mt-2">
+        <a href="{{ url_for('main.matches', tab='results') }}" class="btn btn-outline btn-sm">View Results</a>
+        <a href="{{ url_for('main.matches', tab='table') }}" class="btn btn-ghost btn-sm" style="margin-left:8px;">League Table</a>
+      </div>
     </div>
 
     <h2 class="section-title tp-home-title">TOP PERFORMERS</h2>

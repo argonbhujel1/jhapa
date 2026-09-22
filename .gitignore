@@ -1,11 +1,11 @@
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
 .env
 instance/
 *.db
-.vercel
 .venv/
 venv/
+.DS_Store
 static/uploads/**
 !static/uploads/.gitkeep
-*.log

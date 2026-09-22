@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, date
 from models import (
+    LeagueStanding,
     db, User, ClubInfo, Match, News, ProductCategory, Product, ProductVariant,
     MembershipPlan, Sponsor, SiteSetting, GalleryImage, Player, Leadership
 )
@@ -52,34 +53,88 @@ def seed_all(app):
             if not SiteSetting.query.filter_by(key=key).first():
                 db.session.add(SiteSetting(key=key, value=value))
 
-        # Demo Matches
-        if Match.query.count() == 0:
-            base = datetime.utcnow().replace(hour=16, minute=0, second=0, microsecond=0)
-            matches = [
-                # Upcoming
-                ('Pokhara Thunders', base + timedelta(days=12), True, 'upcoming', None, None, 'Dashrath Stadium'),
-                ('Lalitpur City FC', base + timedelta(days=26), False, 'upcoming', None, None, 'ANFA Complex'),
-                ('Butwal Lumbini FC', base + timedelta(days=40), True, 'upcoming', None, None, 'Jhapa Stadium'),
-                ('Kathmandu Rayzrs', base + timedelta(days=54), False, 'upcoming', None, None, 'Dashrath Stadium'),
-                # Results
-                ('Dharan FC', base - timedelta(days=7), True, 'finished', 2, 1, 'Jhapa Stadium'),
-                ('Biratnagar City', base - timedelta(days=21), False, 'finished', 1, 1, 'Sahid Rangsala'),
-                ('Chitwan Rhinos', base - timedelta(days=35), True, 'finished', 3, 0, 'Jhapa Stadium'),
-                ('Pokhara Thunders', base - timedelta(days=49), False, 'finished', 0, 2, 'Pokhara Stadium'),
-            ]
-            for opp, dt, home, status, hs, as_, venue in matches:
+        # NSL Season 3 — official results (kick-off 12:45 PM)
+        nsl3_matches = [
+            # opponent, date, home, jhapa_goals, opp_goals, report
+            ('Butwal Lumbini FC', datetime(2025, 3, 30, 12, 45), True, 0, 0,
+             'NSL Season 3 · Goalless draw. Jhapa FC Scorers: None. Opponent Scorers: None.'),
+            ('Kathmandu Rayzrs FC', datetime(2025, 4, 3, 12, 45), True, 0, 0,
+             'NSL Season 3 · Goalless draw. Jhapa FC Scorers: None. Opponent Scorers: None.'),
+            ('FC Chitwan', datetime(2025, 4, 6, 12, 45), True, 1, 1,
+             "NSL Season 3 · 1-1. Jhapa FC Scorers: Alhaji Gero (90+4' Pen). Opponent Scorers: Torric Jebrin (27')."),
+            ('Pokhara Thunders', datetime(2025, 4, 12, 12, 45), True, 1, 1,
+             'NSL Season 3 · 1-1. Jhapa FC Scorers: Lazar Arsic. Opponent Scorers: Stéphane Binong.'),
+            ('Dhangadhi FC', datetime(2025, 4, 14, 12, 45), True, 0, 1,
+             'NSL Season 3 · Loss 0-1. Jhapa FC Scorers: None. Opponent Scorers: Ahmad Hijazi.'),
+            ('Lalitpur City FC', datetime(2025, 4, 16, 12, 45), True, 1, 1,
+             "NSL Season 3 · 1-1. Jhapa FC Scorers: Laken Limbu (66'). Opponent Scorers: Nabin Lama (54')."),
+        ]
+        for opp, dt, home, jg, og, report in nsl3_matches:
+            exists = Match.query.filter(
+                Match.opponent == opp,
+                Match.competition == 'Nepal Super League Season 3',
+            ).first()
+            if exists:
+                exists.match_date = dt
+                exists.is_home = home
+                exists.status = 'finished'
+                exists.home_score = jg if home else og
+                exists.away_score = og if home else jg
+                exists.venue = 'Dashrath Rangasala, Kathmandu'
+                exists.match_report = report
+                exists.is_published = True
+                exists.is_demo = False
+            else:
                 db.session.add(Match(
                     opponent=opp,
                     match_date=dt,
                     is_home=home,
-                    status=status,
-                    home_score=hs if home else as_,
-                    away_score=as_ if home else hs,
-                    venue=venue,
-                    competition='Nepal Super League',
-                    is_demo=True,
-                    is_published=True
+                    status='finished',
+                    home_score=jg if home else og,
+                    away_score=og if home else jg,
+                    venue='Dashrath Rangasala, Kathmandu',
+                    competition='Nepal Super League Season 3',
+                    match_report=report,
+                    is_demo=False,
+                    is_published=True,
                 ))
+
+        # NSL Season 3 final league table
+        table_rows = [
+            # pos, team, pld, w, d, l, gf, ga, pts, is_jhapa
+            (1, 'Lalitpur City FC', 6, 3, 3, 0, 10, 8, 12, False),
+            (2, 'Dhangadhi FC', 6, 3, 2, 1, 9, 5, 11, False),
+            (3, 'FC Chitwan', 6, 3, 1, 2, 8, 6, 10, False),
+            (4, 'Pokhara Thunders', 6, 2, 2, 2, 7, 6, 8, False),
+            (5, 'Kathmandu Rayzrs', 6, 2, 2, 2, 6, 7, 8, False),
+            (6, 'Jhapa FC', 6, 0, 5, 1, 3, 4, 5, True),
+            (7, 'Butwal Lumbini FC', 6, 0, 1, 5, 1, 10, 1, False),
+        ]
+        for pos, team, pld, w, d, l, gf, ga, pts, is_j in table_rows:
+            row = LeagueStanding.query.filter_by(team_name=team, season='NSL S3 2025').first()
+            if not row:
+                row = LeagueStanding(team_name=team, season='NSL S3 2025')
+                db.session.add(row)
+            row.position = pos
+            row.played = pld
+            row.won = w
+            row.drawn = d
+            row.lost = l
+            row.goals_for = gf
+            row.goals_against = ga
+            row.points = pts
+            row.is_jhapa = is_j
+            row.is_published = True
+
+        # Fair Play Award setting
+        if not SiteSetting.query.filter_by(key='fair_play_award').first():
+            db.session.add(SiteSetting(
+                key='fair_play_award',
+                value='Jhapa FC — NSL Season 3 Fair Play Award Winner'
+            ))
+        else:
+            s = SiteSetting.query.filter_by(key='fair_play_award').first()
+            s.value = 'Jhapa FC — NSL Season 3 Fair Play Award Winner'
 
         # Demo News
         if News.query.count() == 0:
