@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block title %}About Club | Jhapa FC{% endblock %}
 {% block content %}
-<div class="page-header"><div class="container"><h1>More Than A Club</h1><p>The Pride of Jhapa</p></div></div>
+<div class="page-header"><div class="container"><h1>More Than A Club</h1><p>The Pride of Jhapa · Home of the Elephants</p></div></div>
+
 <section class="section"><div class="container">
   {% if about %}<p style="font-size:1.1rem;color:var(--text-muted);max-width:800px;margin:0 auto 40px;text-align:center;line-height:1.8;">{{ about.content }}</p>{% endif %}
   <div class="grid-3">
@@ -10,5 +11,147 @@
     {% if values %}<div class="card" style="padding:24px;"><h3 style="color:var(--primary-light);margin-bottom:10px;">{{ values.title }}</h3><p style="color:var(--text-muted);">{{ values.content }}</p></div>{% endif %}
   </div>
   {% if established %}<p class="text-center mt-3 text-muted">Established {{ established.content }}</p>{% endif %}
+</div></section>
+
+{# Club Stats #}
+{% if club_stats and club_stats.content %}
+<section class="section" style="padding-top:0;"><div class="container">
+  <h2 class="section-title">Club Record</h2>
+  <p class="section-sub">Documented 2019–2025</p>
+  <div class="grid-4" style="gap:16px;">
+    {% for line in club_stats.content.split('\n') %}
+      {% set parts = line.split('|') %}
+      {% if parts|length >= 2 %}
+      <div class="card" style="padding:22px;text-align:center;">
+        <div style="font-family:var(--font-display);font-size:1.8rem;color:var(--neon);font-weight:800;">{{ parts[0].strip() }}</div>
+        <div class="text-muted" style="font-size:0.85rem;margin-top:6px;">{{ parts[1].strip() }}</div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div></section>
+{% endif %}
+
+{# Trophy Cabinet #}
+{% if trophy_cabinet and trophy_cabinet.content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">🏆 Trophy Cabinet</h2>
+  <p class="section-sub">Jhapa FC Honours — documented</p>
+  <div class="grid-2" style="gap:16px;max-width:900px;margin:0 auto;">
+    {% for line in trophy_cabinet.content.split('\n') %}
+      {% set parts = line.split('|') %}
+      {% if parts|length >= 3 %}
+      <div class="card" style="padding:20px;display:flex;align-items:center;gap:16px;border:1px solid rgba(253,224,71,0.25);">
+        <div style="font-size:2rem;">🏆</div>
+        <div>
+          <div style="font-weight:700;color:#fff;">{{ parts[0].strip() }}</div>
+          <div class="text-muted" style="font-size:0.9rem;">{{ parts[1].strip() }} · <span style="color:#fde047;">{{ parts[2].strip() }}</span></div>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div></section>
+{% endif %}
+
+{# 2022 Champions highlight #}
+{% if champions_2022 and champions_2022.content %}
+<section class="section"><div class="container">
+  <div class="card" style="padding:32px;text-align:center;max-width:800px;margin:0 auto;border:1px solid rgba(0,240,255,0.3);box-shadow:0 0 40px rgba(0,240,255,0.08);">
+    <p style="color:var(--neon);letter-spacing:2px;font-weight:700;margin:0;">2022 SEASON</p>
+    <h2 style="font-family:var(--font-display);color:#fff;margin:12px 0;font-size:clamp(1.5rem,4vw,2.2rem);">C Division Champions</h2>
+    <p style="color:var(--text-muted);line-height:1.7;">{{ champions_2022.content }}</p>
+    <p style="color:#fde047;margin-top:16px;font-weight:700;">⬆️ Promoted to B Division</p>
+  </div>
+</div></section>
+{% endif %}
+
+{# Timeline #}
+{% if timeline and timeline.content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">Club Timeline</h2>
+  <p class="section-sub">2019 → 2025</p>
+  <div style="max-width:640px;margin:0 auto;position:relative;padding-left:24px;border-left:2px solid rgba(0,240,255,0.35);">
+    {% for line in timeline.content.split('\n') %}
+      {% set parts = line.split('|') %}
+      {% if parts|length >= 2 %}
+      <div style="margin-bottom:28px;position:relative;">
+        <span style="position:absolute;left:-31px;top:4px;width:14px;height:14px;border-radius:50%;background:var(--neon);box-shadow:0 0 12px rgba(0,240,255,0.6);"></span>
+        <div style="font-family:var(--font-display);color:var(--neon);font-weight:700;">{{ parts[0].strip() }}</div>
+        <div style="color:var(--text-muted);margin-top:4px;">{{ parts[1].strip() }}</div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div></section>
+{% endif %}
+
+{# Season by season #}
+{% if season_table and season_table.content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">Season by Season</h2>
+  <div class="card" style="padding:0;overflow:auto;">
+    <table class="admin-table" style="margin:0;font-size:0.85rem;">
+      <thead>
+        <tr><th>Season</th><th>Competition</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pos</th></tr>
+      </thead>
+      <tbody>
+      {% for line in season_table.content.split('\n') %}
+        {% set p = line.split('|') %}
+        {% if p|length >= 9 %}
+        <tr>
+          <td>{{ p[0].strip() }}</td>
+          <td>{{ p[1].strip() }}</td>
+          <td>{{ p[2].strip() }}</td>
+          <td>{{ p[3].strip() }}</td>
+          <td>{{ p[4].strip() }}</td>
+          <td>{{ p[5].strip() }}</td>
+          <td>{{ p[6].strip() }}</td>
+          <td>{{ p[7].strip() }}</td>
+          <td><strong>{% if 'Champion' in p[8] %}🏆 {% endif %}{{ p[8].strip() }}</strong></td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div></section>
+{% endif %}
+
+{# Records #}
+{% if club_records and club_records.content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">Club Records</h2>
+  <div class="grid-3">
+    {% for line in club_records.content.split('\n') %}
+      {% set p = line.split('|') %}
+      {% if p|length >= 3 %}
+      <div class="card" style="padding:22px;">
+        <div class="text-muted" style="font-size:0.8rem;letter-spacing:1px;">{{ p[0].strip()|upper }}</div>
+        <div style="color:#fff;font-weight:700;margin:8px 0;">{{ p[1].strip() }}</div>
+        <div style="color:var(--neon);font-size:0.9rem;">{{ p[2].strip() }}</div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div></section>
+{% endif %}
+
+{# Home ground #}
+{% if home_ground and home_ground.content %}
+<section class="section"><div class="container">
+  <h2 class="section-title">Home Ground</h2>
+  <div class="card" style="padding:28px;max-width:640px;margin:0 auto;text-align:center;">
+    <div style="font-size:2rem;margin-bottom:8px;">🏟️</div>
+    {% for line in home_ground.content.split('\n') %}
+    <p style="color:{% if loop.first %}#fff;font-weight:700;font-size:1.2rem{% else %}var(--text-muted){% endif %};margin:6px 0;">{{ line.strip() }}</p>
+    {% endfor %}
+  </div>
+</div></section>
+{% endif %}
+
+<section class="section"><div class="container text-center">
+  <a href="{{ url_for('main.matches', tab='results') }}" class="btn btn-primary">Match History</a>
+  <a href="{{ url_for('main.matches', tab='table') }}" class="btn btn-outline" style="margin-left:8px;">League Table</a>
 </div></section>
 {% endblock %}

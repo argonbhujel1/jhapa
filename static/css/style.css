@@ -2530,3 +2530,34 @@ html:not([data-theme]) body {
   font-weight: 900 !important;
   text-transform: uppercase !important;
 }
+
+/* Top performer avatars — prefer face area */
+.tp-photo img,
+.home-tp-col .tp-photo img {
+  object-fit: cover !important;
+  object-position: center 15% !important;
+}
+.home-table-performers {
+  display: grid !important;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(260px, 1fr) !important;
+  gap: 28px !important;
+  align-items: start !important;
+}
+@media (max-width: 900px) {
+  .home-table-performers {
+    grid-template-columns: 1fr !important;
+  }
+}
+.home-league-col table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.home-league-col th,
+.home-league-col td {
+  padding: 8px 6px;
+  text-align: center;
+}
+.home-league-col th:nth-child(2),
+.home-league-col td:nth-child(2) {
+  text-align: left;
+}

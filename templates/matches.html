@@ -2,7 +2,16 @@
 {% block title %}Matches | Jhapa FC{% endblock %}
 {% block content %}
 <div class="page-header"><div class="container"><h1>Match Centre</h1><p>Fixtures, Results, League &amp; Performers</p></div></div>
-<section class="section"><div class="container">
+<section class="section">
+  {% if tab == 'results' or tab not in ['upcoming','table','performers'] %}
+  <div class="text-center" style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+    <a href="{{ url_for('main.matches', tab='results', year='all') }}" class="btn btn-sm {% if current_year == 'all' or not current_year %}btn-primary{% else %}btn-outline{% endif %}">All</a>
+    {% for y in years|default([]) %}
+    <a href="{{ url_for('main.matches', tab='results', year=y) }}" class="btn btn-sm {% if current_year == y|string %}btn-primary{% else %}btn-outline{% endif %}">{{ y }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+<div class="container">
   <div class="tabs">
     <a href="?tab=upcoming" class="{% if tab != 'results' and tab != 'table' and tab != 'performers' %}active{% endif %}">Upcoming</a>
     <a href="?tab=results" class="{% if tab == 'results' %}active{% endif %}">Results</a>

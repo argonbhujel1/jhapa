@@ -137,18 +137,99 @@ def seed_all(app):
             s.value = 'Jhapa FC — NSL Season 3 Fair Play Award Winner'
 
 
-        # Remove old demo / non-S3 matches and old league tables
+        # Remove only old is_demo placeholder matches (keep official history)
         try:
-            for m in Match.query.all():
-                if (m.competition or '') != 'Nepal Super League Season 3':
-                    db.session.delete(m)
+            for m in Match.query.filter_by(is_demo=True).all():
+                # keep if official competition name
+                comp = (m.competition or '')
+                if 'Season 3' in comp or 'C Division' in comp or 'NSL' in comp or 'Qualifier' in comp or 'Gold Cup' in comp:
+                    m.is_demo = False
+                    continue
+                db.session.delete(m)
             for row in LeagueStanding.query.all():
-                if (row.season or '') != 'NSL S3 2025':
-                    db.session.delete(row)
+                if (row.season or '') not in ('NSL S3 2025', 'NSL 2023', 'C Division 2022'):
+                    if not row.is_jhapa and row.season not in ('NSL S3 2025',):
+                        # keep NSL S3 only for multi-team table; delete random demo
+                        if row.season and 'NSL S3' not in (row.season or ''):
+                            db.session.delete(row)
             db.session.flush()
-            print('Cleaned non-NSL-S3 matches and standings')
+            print('Cleaned demo matches')
         except Exception as e:
             print('cleanup matches:', e)
+
+
+        # --- Documented club history matches (Nepal90 / RSSSF style records) ---
+        history_matches = [
+            # 2019 C Division Qualifier
+            ('Jorpati FC', datetime(2019, 5, 22, 12, 45), True, 2, 2, 'C Division Qualifier', 'D'),
+            ('Dynamite FC', datetime(2019, 5, 24, 12, 45), True, 4, 0, 'C Division Qualifier', 'W'),
+            ('Active Sports Council', datetime(2019, 6, 16, 12, 45), True, 8, 1, 'C Division Qualifier', 'W'),
+            ('Saraswotinagar SC', datetime(2019, 6, 19, 12, 45), True, 1, 0, 'C Division Qualifier', 'W'),
+            # 2023 NSL
+            ('Pokhara Thunders', datetime(2023, 12, 2, 12, 45), True, 0, 1, 'Nepal Super League 2023', 'L'),
+            ('Kathmandu RayZrs', datetime(2023, 12, 4, 12, 45), True, 0, 0, 'Nepal Super League 2023', 'D'),
+            ('Birgunj United', datetime(2023, 12, 8, 12, 45), True, 0, 0, 'Nepal Super League 2023', 'D'),
+            ('Butwal Lumbini', datetime(2023, 12, 12, 12, 45), True, 1, 0, 'Nepal Super League 2023', 'W'),
+            ('Lalitpur City', datetime(2023, 12, 15, 12, 45), True, 0, 0, 'Nepal Super League 2023', 'D'),
+            ('Dhangadhi FC', datetime(2023, 12, 20, 12, 45), True, 2, 0, 'Nepal Super League 2023', 'W'),
+            ('FC Chitwan', datetime(2023, 12, 22, 12, 45), True, 0, 2, 'Nepal Super League 2023', 'L'),
+        ]
+        for opp, dt, home, jg, og, comp, _res in history_matches:
+            exists = Match.query.filter(
+                Match.opponent == opp,
+                Match.competition == comp,
+            ).first()
+            if not exists:
+                exists = Match.query.filter(
+                    Match.opponent == opp,
+                    Match.match_date == dt,
+                ).first()
+            if exists:
+                exists.home_score = jg if home else og
+                exists.away_score = og if home else jg
+                exists.status = 'finished'
+                exists.competition = comp
+                exists.is_demo = False
+                exists.is_published = True
+            else:
+                db.session.add(Match(
+                    opponent=opp,
+                    match_date=dt,
+                    is_home=home,
+                    status='finished',
+                    home_score=jg if home else og,
+                    away_score=og if home else jg,
+                    competition=comp,
+                    venue='Nepal',
+                    is_demo=False,
+                    is_published=True,
+                ))
+
+        # Club info: trophies, ground, stats (documented)
+        club_bits = [
+            ('trophy_cabinet', 'Trophy Cabinet',
+             'Rajgadh Gold Cup|2019|Champions\nJhapa District Level Knockout Tournament|2019|Champions\nMartyr\'s Memorial C Division League|2022|Champions\nC Division to B Division|2022|Promotion'),
+            ('home_ground', 'Home Ground',
+             'Domalal Rajbanshi Ground\nLocation: Jhapa, Nepal\nHome venue of Jhapa FC'),
+            ('club_stats', 'Club Record 2019–2025',
+             '50+|Documented matches\n3|Documented trophies\n2|NSL appearances\n1|National promotion\n1|C Division Championship'),
+            ('champions_2022', '2022 C Division Champions',
+             '13 Matches · 11 Wins · 1 Draw · 1 Loss · 28 GF · 10 GA · 34 Points · League Champions · Promoted to B Division'),
+            ('timeline', 'Club Timeline',
+             '2019|Founded / competitive emergence · Rajgadh Gold Cup · Jhapa District Knockout\n2021|C Division Qualifier\n2022|C Division Champions · Promotion to B Division\n2023|NSL Debut\n2025|NSL Campaign · 6th place · Fair Play Award'),
+            ('club_records', 'Club Records',
+             'Biggest documented win|Jhapa FC 8–1 Active Sports Council|16 June 2019\nBest championship campaign|2022 C Division · 11W 1D 1L|2022\nMost goals in a campaign|28 goals — 2022 C Division|2022'),
+            ('season_table', 'Season by Season',
+             '2019|C Division Qualifier|4|—|—|—|15|3|—\n2019|Jhapa District Knockout|3|—|—|—|8|2|Champions\n2019|Rajgadh Gold Cup|3|—|—|—|4|2|Champions\n2021|C Division Qualifier|2|—|—|—|1|1|—\n2022|C Division League|13|11|1|1|28|10|Champions\n2023|NSL|8|2|4|2|4|4|5th\n2025|NSL|6|0|5|1|3|4|6th'),
+        ]
+        for key, title, content in club_bits:
+            row = ClubInfo.query.filter_by(key=key).first()
+            if row:
+                row.title = title
+                row.content = content
+            else:
+                db.session.add(ClubInfo(key=key, title=title, content=content))
+        print('Club history content seeded')
 
         # Demo News
         if News.query.count() == 0:
@@ -341,7 +422,6 @@ Together we are stronger. One Club. One Pride.'''),
         # Top performers from NSL S3 scorers (link squad photos)
         try:
             from models import TopPerformer
-            # Clear old performers
             TopPerformer.query.delete()
             db.session.flush()
             scorers = [
@@ -351,17 +431,15 @@ Together we are stronger. One Club. One Pride.'''),
             ]
             for i, (name, cat, val) in enumerate(scorers):
                 photo = None
-                pl = Player.query.filter(Player.name.ilike('%' + name.split()[-1] + '%')).first()
+                pl = Player.query.filter_by(name=name).first()
                 if not pl:
-                    pl = Player.query.filter(Player.name.ilike('%' + name + '%')).first()
-                if pl and pl.photo:
-                    photo = pl.photo
-                # exact name match preferred
-                pl2 = Player.query.filter_by(name=name).first()
-                if pl2:
-                    if pl2.photo:
-                        photo = pl2.photo
-                    name = pl2.name
+                    # partial match last name
+                    last = name.split()[-1]
+                    pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
+                if pl:
+                    name = pl.name
+                    if pl.photo:
+                        photo = pl.photo
                 db.session.add(TopPerformer(
                     name=name,
                     category=cat,
@@ -369,8 +447,12 @@ Together we are stronger. One Club. One Pride.'''),
                     team='Jhapa FC',
                     photo=photo,
                     order=i,
+                    is_published=True,
+                    season='NSL S3 2025',
                 ))
             print('Top performers seeded from NSL S3')
+        except Exception as e:
+            print('top performers seed:', e)
         except Exception as e:
             print('top performers seed:', e)
 

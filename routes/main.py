@@ -48,7 +48,20 @@ def index():
     ).order_by(Sponsor.order, Sponsor.id).all()
 
     standings = LeagueStanding.query.filter_by(is_published=True).order_by(LeagueStanding.position).limit(10).all()
+    if not standings:
+        standings = LeagueStanding.query.order_by(LeagueStanding.position).limit(10).all()
     performers = TopPerformer.query.filter_by(is_published=True).order_by(TopPerformer.order, TopPerformer.id).limit(6).all()
+    if not performers:
+        performers = TopPerformer.query.order_by(TopPerformer.order, TopPerformer.id).limit(6).all()
+    # Refresh performer photos from squad when name matches
+    try:
+        for p in performers:
+            if not p.photo:
+                pl = Player.query.filter_by(name=p.name).first()
+                if pl and pl.photo:
+                    p.photo = pl.photo
+    except Exception:
+        pass
     squad_preview = Player.query.filter_by(is_published=True).order_by(Player.order, Player.number).limit(8).all()
 
     return render_template('index.html',
@@ -74,7 +87,14 @@ def club():
     mission = ClubInfo.query.filter_by(key='mission').first()
     values = ClubInfo.query.filter_by(key='values').first()
     established = ClubInfo.query.filter_by(key='established').first()
-    return render_template('club.html', about=about, vision=vision, mission=mission, values=values, established=established)
+    keys = ['trophy_cabinet', 'home_ground', 'club_stats', 'champions_2022',
+            'timeline', 'club_records', 'season_table']
+    extra = {k: ClubInfo.query.filter_by(key=k).first() for k in keys}
+    return render_template(
+        'club.html',
+        about=about, vision=vision, mission=mission, values=values,
+        established=established, **extra
+    )
 
 @main_bp.route('/leadership/<int:id>')
 def leadership_detail(id):
@@ -110,12 +130,31 @@ def player(id):
 @main_bp.route('/matches')
 def matches():
     tab = request.args.get('tab', 'upcoming')
+    year = request.args.get('year', 'all')
     upcoming = Match.query.filter_by(status='upcoming', is_published=True).order_by(Match.match_date.asc()).all()
-    results = Match.query.filter_by(status='finished', is_published=True).order_by(Match.match_date.desc()).all()
+    results_q = Match.query.filter_by(status='finished', is_published=True)
+    if year and year != 'all':
+        try:
+            y = int(year)
+            results_q = results_q.filter(
+                db.extract('year', Match.match_date) == y
+            )
+        except ValueError:
+            pass
+    results = results_q.order_by(Match.match_date.desc()).all()
     standings = LeagueStanding.query.filter_by(is_published=True).order_by(LeagueStanding.position).all()
     performers = TopPerformer.query.filter_by(is_published=True).order_by(TopPerformer.order, TopPerformer.id).all()
-    return render_template('matches.html', upcoming=upcoming, results=results, tab=tab,
-                           standings=standings, performers=performers)
+    # years present in results for filter chips
+    years = sorted({
+        m.match_date.year for m in Match.query.filter_by(status='finished', is_published=True).all()
+        if m.match_date
+    }, reverse=True)
+    return render_template(
+        'matches.html',
+        upcoming=upcoming, results=results, tab=tab,
+        standings=standings, performers=performers,
+        years=years, current_year=year,
+    )
 
 @main_bp.route('/match/<int:id>')
 def match_detail(id):
