@@ -349,7 +349,8 @@ def players_fetch_photos():
         for pl in Player.query.all():
             if pl.photo is not None and not str(pl.photo).strip():
                 pl.photo = None
-        n = ensure_player_photos(Player.query.all(), only_missing=True)
+        missing = [p for p in Player.query.all() if not p.photo]
+        n = ensure_player_photos(missing[:20], only_missing=True)  # cap per request
         for xi in AllTimeXI.query.all():
             if not xi.photo:
                 pl = Player.query.filter_by(name=xi.name).first()

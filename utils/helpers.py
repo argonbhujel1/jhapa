@@ -211,7 +211,7 @@ def fetch_player_photo_url(player_name):
 
     def _get_json(url):
         req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=8) as resp:
+        with urllib.request.urlopen(req, timeout=3) as resp:
             return json.loads(resp.read().decode('utf-8', errors='ignore'))
 
     def _thumb_from_summary(title):

@@ -480,8 +480,6 @@ Together we are stronger. One Club. One Pride.'''),
         # Top performers from NSL S3 scorers (link squad photos)
         try:
             from models import TopPerformer
-            TopPerformer.query.delete()
-            db.session.flush()
             scorers = [
                 ('Alhaji Gero', 'Top Scorer', 1),
                 ('Lazar Arsic', 'Goals', 1),
@@ -490,28 +488,28 @@ Together we are stronger. One Club. One Pride.'''),
                 ('Stefan Cupic', 'Clean Sheets', 5),
                 ('Bishal Khawas', 'Goals', 2),
             ]
-            for i, (name, cat, val) in enumerate(scorers):
-                photo = None
-                pl = Player.query.filter_by(name=name).first()
-                if not pl:
-                    # partial match last name
-                    last = name.split()[-1]
-                    pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
-                if pl:
-                    name = pl.name
-                    if pl.photo:
-                        photo = pl.photo
-                db.session.add(TopPerformer(
-                    name=name,
-                    category=cat,
-                    value=val,
-                    team='Jhapa FC',
-                    photo=photo,
-                    order=i,
-                    is_published=True,
-                    season='NSL S3 2025',
-                ))
-            print('Top performers seeded from NSL S3')
+            if TopPerformer.query.count() == 0:
+                for i, (name, cat, val) in enumerate(scorers):
+                    photo = None
+                    pl = Player.query.filter_by(name=name).first()
+                    if not pl:
+                        last = name.split()[-1]
+                        pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
+                    if pl:
+                        name = pl.name
+                        if pl.photo:
+                            photo = pl.photo
+                    db.session.add(TopPerformer(
+                        name=name,
+                        category=cat,
+                        value=val,
+                        team='Jhapa FC',
+                        photo=photo,
+                        order=i,
+                        is_published=True,
+                        season='NSL S3 2025',
+                    ))
+                print('Top performers seeded from NSL S3')
         except Exception as e:
             print('top performers seed:', e)
         except Exception as e:
@@ -604,9 +602,7 @@ Together we are stronger. One Club. One Pride.'''),
                 ]
                 for L in legends:
                     db.session.add(ClubLegend(**L, is_published=True))
-            # All-Time XI — best documented names across eras (admin can edit photos)
-            AllTimeXI.query.delete()
-            db.session.flush()
+            # All-Time XI — best documented names (only seed if empty so admin edits persist)
             xi = [
                 # 4-3-3 style notable XI
                 ('GK', 1, 'Stefan Cupic', 25, 'NSL 2023 · 8 apps · 5 clean sheets · Best XI'),
@@ -621,12 +617,13 @@ Together we are stronger. One Club. One Pride.'''),
                 ('ST', 10, 'Alhaji Gero', 9, 'NSL S3 top scorer'),
                 ('RW', 11, 'Bishal Khawas', None, '2022 C Div final hero · 2 goals in title match'),
             ]
-            for pos, order, name, num, note in xi:
-                db.session.add(AllTimeXI(
-                    position=pos, slot=order, name=name, number=num, note=note,
-                    order=order, is_published=True
-                ))
-            print('All-Time XI refreshed')
+            if AllTimeXI.query.count() == 0:
+                for pos, order, name, num, note in xi:
+                    db.session.add(AllTimeXI(
+                        position=pos, slot=order, name=name, number=num, note=note,
+                        order=order, is_published=True
+                    ))
+                print('All-Time XI seeded')
             if MuseumItem.query.count() == 0:
                 db.session.add(MuseumItem(
                     title='Martyr\'s Memorial C Division Champions 2022',
@@ -696,49 +693,6 @@ Together we are stronger. One Club. One Pride.'''),
             print('hof profiles:', e)
 
         
-        # Auto-fetch player photos (Wikipedia) when missing
-        try:
-            from utils.helpers import ensure_player_photos, fetch_player_photo_url
-            # Treat empty string as missing
-            for _pl in Player.query.all():
-                if _pl.photo is not None and not str(_pl.photo).strip():
-                    _pl.photo = None
-            n = ensure_player_photos(Player.query.all(), only_missing=True)
-            print('Player photos auto-fetched:', n)
-            # All-Time XI photos from same source / squad
-            for xi in AllTimeXI.query.all():
-                if xi.photo:
-                    continue
-                pl = Player.query.filter_by(name=xi.name).first()
-                if pl and pl.photo:
-                    xi.photo = pl.photo
-                else:
-                    u = fetch_player_photo_url(xi.name)
-                    if u:
-                        xi.photo = u
-            # Top performers photos
-            for tp in TopPerformer.query.all():
-                if tp.photo:
-                    continue
-                pl = Player.query.filter_by(name=tp.name).first()
-                if pl and pl.photo:
-                    tp.photo = pl.photo
-                else:
-                    u = fetch_player_photo_url(tp.name)
-                    if u:
-                        tp.photo = u
-            for lg in ClubLegend.query.all():
-                if lg.photo:
-                    continue
-                pl = Player.query.filter_by(name=lg.name).first()
-                if pl and pl.photo:
-                    lg.photo = pl.photo
-                else:
-                    u = fetch_player_photo_url(lg.name)
-                    if u:
-                        lg.photo = u
-            db.session.commit()
-        except Exception as e:
-            print('auto photo:', e)
+        # Photo auto-fetch only via Admin → Players → Auto-fetch (avoids Vercel timeout)
 
         print('Database seeded successfully.')
