@@ -338,11 +338,14 @@ def product_delete(id):
 # ---------- Players (placeholder ready) ----------
 @admin_bp.route('/players')
 @admin_required
+def players_list():
+    items = Player.query.order_by(Player.order).all()
+    return render_template('admin/players_list.html', items=items)
 
 @admin_bp.route('/players/fetch-photos', methods=['POST'])
 @admin_required
 def players_fetch_photos():
-    """Auto-fetch missing player photos from Wikipedia."""
+    """Auto-fetch missing player photos from Wikipedia (capped)."""
     try:
         from utils.helpers import ensure_player_photos, fetch_player_photo_url
         from models import AllTimeXI, TopPerformer, ClubLegend
@@ -350,7 +353,7 @@ def players_fetch_photos():
             if pl.photo is not None and not str(pl.photo).strip():
                 pl.photo = None
         missing = [p for p in Player.query.all() if not p.photo]
-        n = ensure_player_photos(missing[:20], only_missing=True)  # cap per request
+        n = ensure_player_photos(missing[:15], only_missing=True)
         for xi in AllTimeXI.query.all():
             if not xi.photo:
                 pl = Player.query.filter_by(name=xi.name).first()
@@ -369,11 +372,6 @@ def players_fetch_photos():
         db.session.rollback()
         flash('Photo fetch failed: %s' % e, 'error')
     return redirect(url_for('admin.players_list'))
-
-
-def players_list():
-    items = Player.query.order_by(Player.order).all()
-    return render_template('admin/players_list.html', items=items)
 
 @admin_bp.route('/players/new', methods=['GET', 'POST'])
 @admin_bp.route('/players/<int:id>/edit', methods=['GET', 'POST'])
