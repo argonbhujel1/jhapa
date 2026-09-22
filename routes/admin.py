@@ -641,23 +641,40 @@ def legends_list():
 def legends_edit(id=None):
     item = ClubLegend.query.get(id) if id else None
     if request.method == 'POST':
-        if not item:
-            item = ClubLegend(name='')
-            db.session.add(item)
-        item.name = request.form.get('name', '').strip()
-        item.role = request.form.get('role', 'Player').strip()
-        item.era = request.form.get('era', '').strip()
-        item.achievement = request.form.get('achievement', '').strip()
-        item.current_club = request.form.get('current_club', '').strip()
-        item.category = request.form.get('category', 'Hall of Fame').strip()
-        item.order = int(request.form.get('order') or 0)
-        item.is_published = request.form.get('is_published') == 'on'
-        path = resolve_image_input('photo', 'photo_url', request.form, request.files, 'legends')
-        if path:
-            item.photo = path
-        db.session.commit()
-        flash('Legend saved.', 'success')
-        return redirect(url_for('admin.legends_list'))
+        try:
+            if not item:
+                item = ClubLegend(name='Pending')
+                db.session.add(item)
+            item.name = (request.form.get('name') or '').strip() or 'Unknown'
+            item.role = (request.form.get('role') or 'Player').strip()
+            item.position = (request.form.get('position') or '').strip()
+            item.nationality = (request.form.get('nationality') or 'Nepal').strip()
+            item.era = (request.form.get('era') or '').strip()
+            item.achievement = (request.form.get('achievement') or '').strip()
+            tags = request.form.getlist('tags')
+            if not tags:
+                raw = (request.form.get('tags') or '').strip()
+                tags = [x.strip() for x in raw.split(',') if x.strip()]
+            item.tags = ','.join(tags) if tags else (request.form.get('tag_text') or '').strip()
+            item.appearances = (request.form.get('appearances') or '').strip()
+            item.goals = (request.form.get('goals') or '').strip()
+            item.assists = (request.form.get('assists') or '').strip()
+            item.awards = (request.form.get('awards') or '').strip()
+            item.biography = (request.form.get('biography') or '').strip()
+            item.current_club = (request.form.get('current_club') or '').strip()
+            item.category = (request.form.get('category') or 'Hall of Fame').strip()
+            item.order = int(request.form.get('order') or 0)
+            item.is_published = request.form.get('is_published') == 'on'
+            path = resolve_image_input('photo', 'photo_url', request.form, request.files, 'legends')
+            if path:
+                item.photo = path
+            db.session.commit()
+            flash('Hall of Fame entry saved.', 'success')
+            return redirect(url_for('admin.legends_list'))
+        except Exception as e:
+            db.session.rollback()
+            print('legends_edit:', e)
+            flash('Could not save: %s' % type(e).__name__, 'error')
     return render_template('admin/legends_form.html', item=item)
 
 @admin_bp.route('/legends/<int:id>/delete', methods=['POST'])

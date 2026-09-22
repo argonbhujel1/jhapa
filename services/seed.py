@@ -221,7 +221,7 @@ def seed_all(app):
             ('club_records', 'Club Records',
              'Biggest documented win|Jhapa FC 8–1 Active Sports Council|16 June 2019\nBest championship campaign|2022 C Division · 11W 1D 1L|2022\nMost goals in a campaign|28 goals — 2022 C Division|2022'),
             ('season_table', 'Season by Season',
-             '2019|C Division Qualifier|4|—|—|—|15|3|—\n2019|Jhapa District Knockout|3|—|—|—|8|2|Champions\n2019|Rajgadh Gold Cup|3|—|—|—|4|2|Champions\n2021|C Division Qualifier|2|—|—|—|1|1|—\n2022|C Division League|13|11|1|1|28|10|Champions\n2023|NSL|8|2|4|2|4|4|5th\n2025|NSL|6|0|5|1|3|4|6th'),
+             '2019|C Division Qualifier|4|—|—|—|15|3|—\n2019|Jhapa District Knockout|3|—|—|—|8|2|Champions\n2019|Rajgadh Gold Cup|3|—|—|—|4|2|Champions\n2021|C Division Super Six|—|—|—|—|—|—|Missed promotion (lost 2-1 to Church Boys)\n2022|C Division League|13|11|1|1|28|10|Champions\n2023|NSL|8|2|4|2|4|4|5th\n2025|Martyr Memorial B Division|13|5|3|5|15|13|8th\n2025|NSL Season 3|6|0|5|1|3|4|6th'),
         ]
         for key, title, content in club_bits:
             row = ClubInfo.query.filter_by(key=key).first()
@@ -584,5 +584,52 @@ Together we are stronger. One Club. One Pride.'''),
             print('Museum / Legends / XI seeded')
         except Exception as e:
             print('museum seed:', e)
+
+        
+        # Expand Hall of Fame profiles (documented)
+        try:
+            from models import ClubLegend
+            profiles = [
+                dict(name='Anjan Bista', role='Player', position='LW / CF', nationality='Nepal', era='2022, 2023',
+                     achievement='Jhapa FC first marquee player', awards='Marquee player NSL debut era',
+                     appearances='6*', goals='1*', tags='Players,Club Legends', biography='Inaugural marquee player and major star for Jhapa FC NSL campaigns.', order=1),
+                dict(name='Laken Limbu', role='Captain', position='Central Midfielder', nationality='Nepal', era='2022, 2023, 2024/25',
+                     achievement='Club captain · long-term Jhapa FC identity', awards='Captain / marquee',
+                     appearances='6*', goals='1*', tags='Players,Captains,Club Legends', biography='Consistent Jhapa FC midfielder from inaugural era through 2025 captaincy.', order=2),
+                dict(name='Paras Karki', role='Player', position='Player', nationality='Nepal', era='2022 C Division',
+                     achievement='2022 Player of the Tournament (ANFA C Division)', awards='Player of the Tournament',
+                     tags='Players,Achievements,Club Legends', biography='Named Player of the Tournament as Jhapa won the Martyr\'s Memorial C Division League 2022.', order=3),
+                dict(name='Bishal Khawas', role='Player', position='Forward', nationality='Nepal', era='2022 C Division',
+                     achievement='2022 Championship final scorer (2 goals vs Swoyambhu)', awards='Final hero',
+                     tags='Players,Achievements,Club Legends', biography='Scored twice in the C Division title-clinching final (ANFA).', order=4),
+                dict(name='Stefan Cupic', role='Player', position='Goalkeeper', nationality='Serbia', era='2023',
+                     achievement='NSL 2023 Best XI goalkeeper (media)', awards='NSL 2023 Best XI · 5 clean sheets',
+                     appearances='8', goals='0', tags='Players,International,Club Legends', biography='Serbian goalkeeper with 8 appearances and 5 clean sheets in NSL 2023.', order=5),
+                dict(name='Alhaji Gero', role='Player', position='Centre-Forward', nationality='Nigeria', era='2024/25',
+                     achievement='NSL Season 3 goalscorer', appearances='6*', goals='1*', tags='Players,International',
+                     biography='Nigerian centre-forward, NSL S3 foreign attacking option.', order=6),
+                dict(name='Lazar Arsic', role='Player', position='Attacking Midfielder', nationality='Serbia', era='2024/25',
+                     achievement='NSL Season 3 goalscorer', appearances='6*', goals='1*', assists='1*', tags='Players,International',
+                     biography='Serbian attacking midfielder, key foreign creative player NSL S3.', order=7),
+                dict(name='Prabesh Katuwal', role='Coach', position='Head Coach', nationality='Nepal', era='NSL 2025',
+                     achievement='Head coach NSL Season 3', tags='Coaches', biography='Appointed head coach for NSL Season 3.', order=8),
+            ]
+            for p in profiles:
+                row = ClubLegend.query.filter_by(name=p['name']).first()
+                if not row:
+                    row = ClubLegend(name=p['name'])
+                    db.session.add(row)
+                for k, v in p.items():
+                    if k != 'name' and v is not None:
+                        setattr(row, k, v)
+                row.category = 'Hall of Fame'
+                row.is_published = True
+            # Always refresh season table content
+            st = ClubInfo.query.filter_by(key='season_table').first()
+            if st:
+                st.content = '2019|C Division Qualifier|4|—|—|—|15|3|—\n2019|Jhapa District Knockout|3|—|—|—|8|2|Champions\n2019|Rajgadh Gold Cup|3|—|—|—|4|2|Champions\n2021|C Division Super Six|—|—|—|—|—|—|Missed promotion (lost 2-1 to Church Boys)\n2022|C Division League|13|11|1|1|28|10|Champions\n2023|NSL|8|2|4|2|4|4|5th\n2025|Martyr Memorial B Division|13|5|3|5|15|13|8th\n2025|NSL Season 3|6|0|5|1|3|4|6th'
+            print('Hall of Fame profiles updated')
+        except Exception as e:
+            print('hof profiles:', e)
 
         print('Database seeded successfully.')

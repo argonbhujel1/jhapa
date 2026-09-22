@@ -309,12 +309,20 @@ class ClubLegend(db.Model):
     __tablename__ = 'club_legends'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    role = db.Column(db.String(80), default='Player')  # Player, Coach, Staff
-    era = db.Column(db.String(40))  # e.g. 2022 C Division, NSL 2023
-    achievement = db.Column(db.Text)
-    current_club = db.Column(db.String(120))  # Where Are They Now
+    role = db.Column(db.String(80), default='Player')  # Player, Coach, Staff, Captain
+    position = db.Column(db.String(60))  # LW/CF, GK, etc.
+    nationality = db.Column(db.String(60), default='Nepal')
+    era = db.Column(db.String(80))  # Jhapa FC seasons e.g. 2022, 2023
+    achievement = db.Column(db.Text)  # documented honour tag
+    tags = db.Column(db.String(200))  # comma: Players,Captains,Coaches,Club Legends,Achievements
+    appearances = db.Column(db.String(20))
+    goals = db.Column(db.String(20))
+    assists = db.Column(db.String(20))
+    awards = db.Column(db.String(255))
+    biography = db.Column(db.Text)
+    current_club = db.Column(db.String(120))
     photo = db.Column(db.Text)
-    category = db.Column(db.String(40), default='Hall of Fame')  # Hall of Fame, Where Are They Now
+    category = db.Column(db.String(40), default='Hall of Fame')
     order = db.Column(db.Integer, default=0)
     is_published = db.Column(db.Boolean, default=True)
 

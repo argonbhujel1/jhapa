@@ -137,20 +137,6 @@
 </div></section>
 {% endif %}
 
-{# Home ground #}
-{% if home_ground and home_ground.content %}
-<section class="section"><div class="container">
-  <h2 class="section-title">Home Ground</h2>
-  <div class="card" style="padding:28px;max-width:640px;margin:0 auto;text-align:center;">
-    <div style="font-size:2rem;margin-bottom:8px;">🏟️</div>
-    {% for line in home_ground.content.split('\n') %}
-    <p style="color:{% if loop.first %}#fff;font-weight:700;font-size:1.2rem{% else %}var(--text-muted){% endif %};margin:6px 0;">{{ line.strip() }}</p>
-    {% endfor %}
-  </div>
-</div></section>
-{% endif %}
-
-
 {# Stadium image #}
 {% if stadium_img or home_ground %}
 <section class="section"><div class="container">
@@ -161,7 +147,7 @@
     {% endif %}
     <div style="padding:24px;text-align:center;">
       {% if home_ground %}
-      {% for line in home_ground.content.split('\n') %}
+      {% for line in home_ground.content.splitlines() %}
       <p style="color:{% if loop.first %}#fff;font-weight:700;font-size:1.15rem{% else %}var(--text-muted){% endif %};margin:6px 0;">{{ line.strip() }}</p>
       {% endfor %}
       {% else %}
@@ -194,25 +180,64 @@
 
 {# Hall of Fame #}
 {% if hall %}
-<section class="section"><div class="container">
-  <h2 class="section-title">⭐ Hall of Fame</h2>
-  <div class="grid-3">
+<section class="section" id="hall-of-fame"><div class="container">
+  <h2 class="section-title">★ Hall of Fame ★</h2>
+  <p class="section-sub">Jhapa FC Legends & Icons — documented achievements</p>
+  <div class="text-center" style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;" id="hofFilters">
+    <button type="button" class="btn btn-sm btn-primary hof-filter" data-filter="all">All</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="Players">Players</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="Captains">Captains</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="Coaches">Coaches</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="Club Legends">Club Legends</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="Achievements">Achievements</button>
+    <button type="button" class="btn btn-sm btn-outline hof-filter" data-filter="International">International</button>
+  </div>
+  <div class="grid-3" id="hofGrid">
     {% for h in hall %}
-    <div class="card" style="padding:20px;">
+    <div class="card hof-card" data-tags="{{ h.tags or h.role or '' }}" style="padding:20px;">
       <div style="display:flex;gap:14px;align-items:center;">
-        <div style="width:64px;height:64px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#0a1628;">
-          {% if h.photo %}<img src="{{ h.photo|media_url }}" style="width:100%;height:100%;object-fit:cover;">{% else %}<div style="height:100%;display:flex;align-items:center;justify-content:center;">⭐</div>{% endif %}
+        <div style="width:72px;height:72px;border-radius:50%;overflow:hidden;flex-shrink:0;background:#0a1628;border:2px solid rgba(253,224,71,0.35);">
+          {% if h.photo %}<img src="{{ h.photo|media_url }}" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;" alt="{{ h.name }}">{% else %}<div style="height:100%;display:flex;align-items:center;justify-content:center;">⭐</div>{% endif %}
         </div>
         <div>
           <div style="color:#fff;font-weight:700;">{{ h.name }}</div>
-          <div class="text-muted" style="font-size:0.8rem;">{{ h.role }}{% if h.era %} · {{ h.era }}{% endif %}</div>
+          <div class="text-muted" style="font-size:0.8rem;">{% if h.position %}{{ h.position }} · {% endif %}{{ h.role }}{% if h.nationality %} · {{ h.nationality }}{% endif %}</div>
+          {% if h.era %}<div style="color:var(--neon);font-size:0.8rem;margin-top:2px;">{{ h.era }}</div>{% endif %}
         </div>
       </div>
-      {% if h.achievement %}<p class="text-muted" style="font-size:0.85rem;margin-top:12px;">{{ h.achievement }}</p>{% endif %}
+      {% if h.achievement %}<p style="color:#fde047;font-size:0.85rem;margin-top:12px;font-weight:600;">{{ h.achievement }}</p>{% endif %}
+      {% if h.awards %}<p class="text-muted" style="font-size:0.8rem;">{{ h.awards }}</p>{% endif %}
+      <div style="display:flex;gap:12px;margin-top:8px;font-size:0.8rem;color:var(--text-muted);">
+        {% if h.appearances %}<span>Apps: {{ h.appearances }}</span>{% endif %}
+        {% if h.goals %}<span>Goals: {{ h.goals }}</span>{% endif %}
+        {% if h.assists %}<span>Ast: {{ h.assists }}</span>{% endif %}
+      </div>
+      {% if h.biography %}<p class="text-muted" style="font-size:0.85rem;margin-top:10px;line-height:1.5;">{{ h.biography }}</p>{% endif %}
+      {% if h.tags %}
+      <div style="margin-top:10px;">{% for tag in h.tags.split(',') %}<span style="display:inline-block;font-size:0.7rem;padding:2px 8px;margin:2px;border-radius:999px;border:1px solid rgba(0,240,255,0.3);color:var(--neon);">{{ tag.strip() }}</span>{% endfor %}</div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
-</div></section>
+</div>
+<script>
+(function(){
+  var btns = document.querySelectorAll('.hof-filter');
+  var cards = document.querySelectorAll('.hof-card');
+  btns.forEach(function(b){
+    b.addEventListener('click', function(){
+      btns.forEach(function(x){ x.classList.remove('btn-primary'); x.classList.add('btn-outline'); });
+      b.classList.add('btn-primary'); b.classList.remove('btn-outline');
+      var f = b.getAttribute('data-filter');
+      cards.forEach(function(c){
+        var tags = (c.getAttribute('data-tags')||'').toLowerCase();
+        c.style.display = (f==='all' || tags.indexOf(f.toLowerCase())>=0) ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
+</section>
 {% endif %}
 
 {# Where Are They Now #}

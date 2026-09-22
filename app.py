@@ -256,6 +256,30 @@ def create_app():
             from sqlalchemy import text, inspect as sa_inspect
             eng = db.engine
             insp = sa_inspect(eng)
+            if 'club_legends' in insp.get_table_names():
+                cols = {c['name'] for c in insp.get_columns('club_legends')}
+                alters = []
+                for col, typ in [
+                    ('position', 'VARCHAR(60)'), ('nationality', 'VARCHAR(60)'),
+                    ('tags', 'VARCHAR(200)'), ('appearances', 'VARCHAR(20)'),
+                    ('goals', 'VARCHAR(20)'), ('assists', 'VARCHAR(20)'),
+                    ('awards', 'VARCHAR(255)'), ('biography', 'TEXT'),
+                ]:
+                    if col not in cols:
+                        alters.append('ALTER TABLE club_legends ADD COLUMN %s %s' % (col, typ))
+                if alters:
+                    with eng.begin() as conn:
+                        for a in alters:
+                            conn.execute(text(a))
+                    print('Schema: club_legends extended')
+        except Exception as e:
+            print('club_legends schema:', e)
+
+
+        try:
+            from sqlalchemy import text, inspect as sa_inspect
+            eng = db.engine
+            insp = sa_inspect(eng)
             if 'users' in insp.get_table_names():
                 cols = {c['name'] for c in insp.get_columns('users')}
                 with eng.begin() as conn:
