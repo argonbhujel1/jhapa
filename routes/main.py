@@ -53,6 +53,15 @@ def index():
     performers = TopPerformer.query.filter_by(is_published=True).order_by(TopPerformer.order, TopPerformer.id).limit(6).all()
     if not performers:
         performers = TopPerformer.query.order_by(TopPerformer.order, TopPerformer.id).limit(6).all()
+    # Link missing photos from squad (no network)
+    for p in performers:
+        if not p.photo:
+            pl = Player.query.filter(Player.name.ilike(p.name)).first()
+            if not pl:
+                last = p.name.split()[-1]
+                pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
+            if pl and pl.photo:
+                p.photo = pl.photo
     # Refresh performer photos from squad when name matches
     try:
         for p in performers:

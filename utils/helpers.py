@@ -180,8 +180,8 @@ def format_currency(amount):
 
 
 def fetch_player_photo_url(player_name):
-    """Fetch a public player portrait URL (Wikipedia / Wikimedia).
-    Returns absolute https URL or None. Admin override always wins if photo set.
+    """Public portrait URL for a player. Tries TheSportsDB then Wikipedia.
+    Returns https URL or None. Admin-uploaded photo always wins if set.
     """
     if not player_name or not str(player_name).strip():
         return None
@@ -189,10 +189,35 @@ def fetch_player_photo_url(player_name):
     import urllib.parse
     name = str(player_name).strip()
     headers = {
-        'User-Agent': 'JhapaFCOfficialSite/1.0 (https://jhapacityfc.vercel.app; club archive)',
+        'User-Agent': 'JhapaFCOfficialSite/1.0 (https://jhapacityfc.vercel.app)',
         'Accept': 'application/json',
     }
 
+    def _get_json(url):
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            return json.loads(resp.read().decode('utf-8', errors='ignore'))
+
+    # 1) TheSportsDB free search (no key needed for v1/3)
+    try:
+        q = urllib.parse.quote(name)
+        data = _get_json('https://www.thesportsdb.com/api/v1/json/3/searchplayers.php?p=' + q)
+        players = data.get('player') or []
+        for pl in players:
+            # Prefer football
+            sport = (pl.get('strSport') or '').lower()
+            thumb = pl.get('strCutout') or pl.get('strThumb') or pl.get('strRender')
+            if thumb and thumb.startswith('http'):
+                if not sport or 'soccer' in sport or 'football' in sport:
+                    return thumb
+        if players:
+            thumb = players[0].get('strCutout') or players[0].get('strThumb')
+            if thumb and thumb.startswith('http'):
+                return thumb
+    except Exception:
+        pass
+
+    # 2) Wikipedia summary / search
     overrides = {
         'Anjan Bista': 'Anjan_Bista',
         'Laken Limbu': 'Laken_Limbu',
@@ -203,49 +228,19 @@ def fetch_player_photo_url(player_name):
         'Lazar Arsić': 'Lazar_Arsić',
         'Nemanja Lemajic': 'Nemanja_Lemajić',
         'Nemanja Lemajić': 'Nemanja_Lemajić',
-        'Mukhammad Isaev': 'Mukhammad_Isaev',
-        'Azamat Abdullaev': 'Azamat_Abdullaev',
-        'Abinash Syangtan': 'Abinash_Syangtan',
-        'Chhiring Lama': 'Chhiring_Lama',
     }
-
-    def _get_json(url):
-        req = urllib.request.Request(url, headers=headers)
-        with urllib.request.urlopen(req, timeout=3) as resp:
-            return json.loads(resp.read().decode('utf-8', errors='ignore'))
-
-    def _thumb_from_summary(title):
-        url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title)
-        data = _get_json(url)
-        if data.get('type') == 'disambiguation':
-            return None
-        thumb = (data.get('thumbnail') or {}).get('source') or (data.get('originalimage') or {}).get('source')
-        if thumb:
-            return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-').replace('/120px-', '/300px-')
-        return None
-
     titles = []
     if name in overrides:
         titles.append(overrides[name])
-    titles += [
-        name.replace(' ', '_'),
-        name.replace(' ', '_') + '_(footballer)',
-        name.replace(' ', '_') + '_(Nepalese_footballer)',
-        name.replace(' ', '_') + '_(footballer,_born',  # partial may fail
-    ]
-
-    # Wikipedia search → best page → summary thumbnail
+    titles += [name.replace(' ', '_'), name.replace(' ', '_') + '_(footballer)']
     try:
-        q = urllib.parse.quote(name + ' footballer Nepal OR football')
-        search_url = (
+        sdata = _get_json(
             'https://en.wikipedia.org/w/api.php?action=query&list=search'
-            '&srlimit=5&format=json&srsearch=' + urllib.parse.quote(name + ' football')
+            '&srlimit=3&format=json&srsearch=' + urllib.parse.quote(name + ' football')
         )
-        sdata = _get_json(search_url)
         for hit in (sdata.get('query') or {}).get('search') or []:
-            t = hit.get('title')
-            if t:
-                titles.append(t.replace(' ', '_'))
+            if hit.get('title'):
+                titles.append(hit['title'].replace(' ', '_'))
     except Exception:
         pass
 
@@ -255,26 +250,16 @@ def fetch_player_photo_url(player_name):
             continue
         seen.add(title)
         try:
-            thumb = _thumb_from_summary(title)
+            data = _get_json(
+                'https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title)
+            )
+            if data.get('type') == 'disambiguation':
+                continue
+            thumb = (data.get('thumbnail') or {}).get('source') or (data.get('originalimage') or {}).get('source')
             if thumb:
-                return thumb
+                return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-').replace('/120px-', '/300px-')
         except Exception:
             continue
-
-    # pageimages API fallback
-    try:
-        api = (
-            'https://en.wikipedia.org/w/api.php?action=query&format=json'
-            '&prop=pageimages&pithumbsize=400&titles=' + urllib.parse.quote(name)
-        )
-        data = _get_json(api)
-        pages = (data.get('query') or {}).get('pages') or {}
-        for _, page in pages.items():
-            t = (page.get('thumbnail') or {}).get('source')
-            if t:
-                return t
-    except Exception:
-        pass
     return None
 
 

@@ -477,41 +477,38 @@ Together we are stronger. One Club. One Pride.'''),
         print('Archive players ensured in squad')
 
 
-        # Top performers from NSL S3 scorers (link squad photos)
+        # Top performers — NSL Season 3 goal scorers only (verified match reports)
         try:
             from models import TopPerformer
             scorers = [
                 ('Alhaji Gero', 'Top Scorer', 1),
                 ('Lazar Arsic', 'Goals', 1),
                 ('Laken Limbu', 'Goals', 1),
-                ('Anjan Bista', 'Goals', 1),
-                ('Stefan Cupic', 'Clean Sheets', 5),
-                ('Bishal Khawas', 'Goals', 2),
             ]
-            if TopPerformer.query.count() == 0:
-                for i, (name, cat, val) in enumerate(scorers):
-                    photo = None
-                    pl = Player.query.filter_by(name=name).first()
-                    if not pl:
-                        last = name.split()[-1]
-                        pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
-                    if pl:
-                        name = pl.name
-                        if pl.photo:
-                            photo = pl.photo
-                    db.session.add(TopPerformer(
-                        name=name,
-                        category=cat,
-                        value=val,
-                        team='Jhapa FC',
-                        photo=photo,
-                        order=i,
-                        is_published=True,
-                        season='NSL S3 2025',
-                    ))
-                print('Top performers seeded from NSL S3')
-        except Exception as e:
-            print('top performers seed:', e)
+            # Replace stale mixed list with accurate S3 scorers
+            TopPerformer.query.delete()
+            db.session.flush()
+            for i, (name, cat, val) in enumerate(scorers):
+                photo = None
+                pl = Player.query.filter_by(name=name).first()
+                if not pl:
+                    last = name.split()[-1]
+                    pl = Player.query.filter(Player.name.ilike('%' + last + '%')).first()
+                if pl:
+                    name = pl.name
+                    if pl.photo:
+                        photo = pl.photo
+                db.session.add(TopPerformer(
+                    name=name,
+                    category=cat,
+                    value=val,
+                    team='Jhapa FC',
+                    photo=photo,
+                    order=i,
+                    is_published=True,
+                    season='NSL S3 2025',
+                ))
+            print('Top performers: NSL S3 scorers only')
         except Exception as e:
             print('top performers seed:', e)
 
