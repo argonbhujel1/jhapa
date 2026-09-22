@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash, abort
+from flask import session, render_template, request, redirect, url_for, flash, abort
 from flask_login import login_user, logout_user, login_required, current_user
 from models import (
     db, User, Match, News, Product, ProductCategory, ProductVariant,
@@ -28,11 +28,100 @@ def login():
         password = request.form.get('password', '')
         user = User.query.filter_by(email=email).first()
         if user and user.check_password(password) and user.is_active:
+            if getattr(user, 'totp_enabled', False) and user.totp_secret:
+                session['pending_2fa_uid'] = user.id
+                session['pending_2fa_remember'] = True
+                return redirect(url_for('admin.login_2fa'))
             login_user(user, remember=True)
-            flash('Welcome back!', 'success')
+            flash('Welcome back.', 'success')
             return redirect(url_for('admin.dashboard'))
-        flash('Invalid credentials.', 'error')
+        flash('Invalid email or password.', 'error')
     return render_template('admin/login.html')
+
+
+@admin_bp.route('/login/2fa', methods=['GET', 'POST'])
+def login_2fa():
+    uid = session.get('pending_2fa_uid')
+    if not uid:
+        return redirect(url_for('admin.login'))
+    user = User.query.get(uid)
+    if not user or not user.totp_enabled or not user.totp_secret:
+        session.pop('pending_2fa_uid', None)
+        return redirect(url_for('admin.login'))
+    if request.method == 'POST':
+        code = (request.form.get('code') or '').strip().replace(' ', '')
+        try:
+            import pyotp
+            totp = pyotp.TOTP(user.totp_secret)
+            if totp.verify(code, valid_window=1):
+                session.pop('pending_2fa_uid', None)
+                remember = session.pop('pending_2fa_remember', True)
+                login_user(user, remember=remember)
+                flash('2FA verified. Welcome.', 'success')
+                return redirect(url_for('admin.dashboard'))
+        except Exception as e:
+            print('2fa verify:', e)
+        flash('Invalid authenticator code. Try again.', 'error')
+    return render_template('admin/login_2fa.html')
+
+
+@admin_bp.route('/security', methods=['GET', 'POST'])
+@admin_required
+def security_2fa():
+    """Enable / disable Google Authenticator (TOTP) for current admin."""
+    import pyotp
+    import urllib.parse
+    user = current_user
+    # Ensure secret exists when viewing setup
+    if not user.totp_secret:
+        user.totp_secret = pyotp.random_base32()
+        db.session.commit()
+
+    totp = pyotp.TOTP(user.totp_secret)
+    issuer = 'JhapaFC-Admin'
+    label = '%s:%s' % (issuer, user.email or 'admin')
+    otpauth = totp.provisioning_uri(name=user.email or 'admin', issuer_name=issuer)
+    qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + urllib.parse.quote(otpauth)
+
+    if request.method == 'POST':
+        action = request.form.get('action')
+        code = (request.form.get('code') or '').strip().replace(' ', '')
+        if action == 'enable':
+            if totp.verify(code, valid_window=1):
+                user.totp_enabled = True
+                db.session.commit()
+                flash('2FA enabled. Use your authenticator app at every login.', 'success')
+            else:
+                flash('Invalid code — scan QR again and enter the current 6-digit code.', 'error')
+        elif action == 'disable':
+            if not user.totp_enabled:
+                flash('2FA is already off.', 'info')
+            elif totp.verify(code, valid_window=1):
+                user.totp_enabled = False
+                # rotate secret after disable
+                user.totp_secret = pyotp.random_base32()
+                db.session.commit()
+                flash('2FA disabled.', 'success')
+            else:
+                flash('Enter a valid authenticator code to disable 2FA.', 'error')
+        elif action == 'reset_secret':
+            if user.totp_enabled:
+                flash('Disable 2FA before resetting the secret.', 'error')
+            else:
+                user.totp_secret = pyotp.random_base32()
+                db.session.commit()
+                flash('New secret generated. Scan the new QR code.', 'success')
+                return redirect(url_for('admin.security_2fa'))
+        return redirect(url_for('admin.security_2fa'))
+
+    return render_template(
+        'admin/security_2fa.html',
+        enabled=bool(user.totp_enabled),
+        secret=user.totp_secret,
+        qr_url=qr_url,
+        otpauth=otpauth,
+    )
+
 
 @admin_bp.route('/logout')
 @login_required

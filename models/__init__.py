@@ -14,6 +14,8 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100))
     role = db.Column(db.String(20), default='admin')  # admin, editor
     is_active = db.Column(db.Boolean, default=True)
+    totp_secret = db.Column(db.String(64))
+    totp_enabled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):

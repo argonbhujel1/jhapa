@@ -251,6 +251,23 @@ def create_app():
                     print('Schema: cart_items.size')
         except Exception as e:
             print('schema alter:', e)
+
+        try:
+            from sqlalchemy import text, inspect as sa_inspect
+            eng = db.engine
+            insp = sa_inspect(eng)
+            if 'users' in insp.get_table_names():
+                cols = {c['name'] for c in insp.get_columns('users')}
+                with eng.begin() as conn:
+                    if 'totp_secret' not in cols:
+                        conn.execute(text('ALTER TABLE users ADD COLUMN totp_secret VARCHAR(64)'))
+                        print('Schema: users.totp_secret')
+                    if 'totp_enabled' not in cols:
+                        conn.execute(text('ALTER TABLE users ADD COLUMN totp_enabled BOOLEAN DEFAULT FALSE'))
+                        print('Schema: users.totp_enabled')
+        except Exception as e:
+            print('2fa schema:', e)
+
         try:
             if app.config.get('SEED_ON_START', True):
                 seed_all(app)
