@@ -420,6 +420,63 @@ Together we are stronger. One Club. One Pride.'''),
                     ))
             print('NSL players seeded')
 
+        # Historical / archive players from public profiles (add if missing)
+        archive_players = [
+            dict(name='Anjan Bista', number=7, position='Left Winger / Centre-Forward (LW/CF)', nationality='Nepal', order=40,
+                 career='First marquee player · Jhapa FC 2022–23 · Nepal national team'),
+            dict(name='Stefan Cupic', number=25, position='Goalkeeper (GK)', nationality='Serbia', order=41,
+                 career='NSL 2023 · 8 apps · 5 clean sheets · media Best XI'),
+            dict(name='Samandar Ochilov', number=20, position='Centre Back (CB)', nationality='Uzbekistan', order=42,
+                 career='NSL 2023 foreign centre-back'),
+            dict(name='Amit Tamang', number=None, position='Left-Back (LB)', nationality='Nepal', order=43,
+                 career='2022 inaugural NSL squad'),
+            dict(name='Yogesh Gurung', number=15, position='Centre Back (CB)', nationality='Nepal', order=44,
+                 career='NSL 2023 defensive unit'),
+            dict(name='Laxman Ruchal', number=None, position='Winger / Midfielder', nationality='Nepal', order=45,
+                 career='NSL 2023 attacking unit'),
+            dict(name='Utsav Rai', number=None, position='Central Midfielder (CM)', nationality='Nepal', order=46,
+                 career='2022 inaugural squad'),
+            dict(name='Sesehang Angdembe', number=None, position='Defensive Midfielder (DM)', nationality='Nepal', order=47,
+                 career='2022 inaugural squad'),
+            dict(name='Aashish Lama', number=None, position='Centre-Forward (ST)', nationality='Nepal', order=48,
+                 career='2022 inaugural squad'),
+            dict(name='Dev Limbu', number=None, position='Goalkeeper (GK)', nationality='Nepal', order=49,
+                 career='2022 inaugural goalkeeper'),
+            dict(name='Kamal Shrestha', number=None, position='Right-Back (RB)', nationality='Nepal', order=50,
+                 career='2022 auction signing'),
+            dict(name='Nishan Khadka', number=None, position='Defender', nationality='Nepal', order=51,
+                 career='2022 Golden Buzzer signing'),
+            dict(name='Santosh Tamang', number=None, position='Attacking Midfielder (AM)', nationality='Nepal', order=52,
+                 career='2022 major auction signing'),
+            dict(name='Ranjan Bista', number=None, position='Midfielder', nationality='Nepal', order=53,
+                 career='2022 inaugural midfield'),
+            dict(name='Bipin Kandel', number=None, position='Midfielder', nationality='Nepal', order=54,
+                 career='2022 inaugural midfield'),
+            dict(name='Janak Koirala', number=None, position='Defender', nationality='Nepal', order=55,
+                 career='2022 inaugural defender'),
+            dict(name='Paras Karki', number=None, position='Midfielder / Utility', nationality='Nepal', order=56,
+                 career='2022 C Division Player of the Tournament (ANFA)'),
+            dict(name='Bishal Khawas', number=None, position='Forward (ST)', nationality='Nepal', order=57,
+                 career='2022 C Division final hero · 2 goals in title match'),
+            dict(name='Jorge Pelaz Sanchez', number=None, position='Centre-Forward (ST)', nationality='Spain', order=58,
+                 career='NSL 2023 · Canillas · foreign striker'),
+            dict(name='Nando Cozar', number=None, position='Central Midfielder (CM)', nationality='Spain', order=59,
+                 career='NSL 2023 foreign midfielder'),
+        ]
+        for pl in archive_players:
+            if not Player.query.filter_by(name=pl['name']).first():
+                db.session.add(Player(
+                    name=pl['name'],
+                    number=pl.get('number'),
+                    position=pl.get('position'),
+                    nationality=pl.get('nationality', 'Nepal'),
+                    career=pl.get('career', ''),
+                    is_published=True,
+                    order=pl.get('order', 99),
+                ))
+        print('Archive players ensured in squad')
+
+
         # Top performers from NSL S3 scorers (link squad photos)
         try:
             from models import TopPerformer
@@ -544,26 +601,29 @@ Together we are stronger. One Club. One Pride.'''),
                 ]
                 for L in legends:
                     db.session.add(ClubLegend(**L, is_published=True))
-            if AllTimeXI.query.count() == 0:
-                # Notable XI based on public NSL / club figures — editable in admin
-                xi = [
-                    ('GK', 1, 'Stefan Cupic', 25, 'NSL era goalkeeper (club site archive)'),
-                    ('CB', 2, 'Chhiring Lama', 4, 'NSL defender'),
-                    ('CB', 3, 'Ashish Gurung', 5, 'NSL / C Division era'),
-                    ('FB', 4, 'Taranath Rajbanshi', 2, 'Club archive'),
-                    ('CM', 5, 'Laken Limbu', 10, 'Captain · NSL'),
-                    ('CM', 6, 'Abinash Syangtan', 8, 'NSL midfielder'),
-                    ('AM', 7, 'Lazar Arsic', 11, 'NSL S3 goalscorer'),
-                    ('WG', 8, 'Anjan Bista', 7, 'Marquee · NSL debut'),
-                    ('ST', 9, 'Alhaji Gero', 9, 'NSL S3 top scorer'),
-                    ('ST', 10, 'Bishal Khawas', None, 'C Division title final hero'),
-                    ('MF', 11, 'Paras Karki', None, 'C Division Player of the Tournament'),
-                ]
-                for pos, order, name, num, note in xi:
-                    db.session.add(AllTimeXI(
-                        position=pos, slot=order, name=name, number=num, note=note,
-                        order=order, is_published=True
-                    ))
+            # All-Time XI — best documented names across eras (admin can edit photos)
+            AllTimeXI.query.delete()
+            db.session.flush()
+            xi = [
+                # 4-3-3 style notable XI
+                ('GK', 1, 'Stefan Cupic', 25, 'NSL 2023 · 8 apps · 5 clean sheets · Best XI'),
+                ('RB', 2, 'Chhiring Lama', 4, '2023–25 · two-era defender'),
+                ('CB', 3, 'Azamat Abdullaev', 6, 'NSL 2025 · centre-back'),
+                ('CB', 4, 'Samandar Ochilov', 20, 'NSL 2023 · foreign CB'),
+                ('LB', 5, 'Amit Tamang', None, '2022 inaugural · left-back'),
+                ('CM', 6, 'Laken Limbu', 10, 'Captain · 2022–25 · club identity'),
+                ('CM', 7, 'Abinash Syangtan', 8, 'NSL midfielder · 2025 regular'),
+                ('AM', 8, 'Lazar Arsic', 11, 'NSL S3 · goals + creativity'),
+                ('LW', 9, 'Anjan Bista', 7, 'First marquee player · 2022–23'),
+                ('ST', 10, 'Alhaji Gero', 9, 'NSL S3 top scorer'),
+                ('RW', 11, 'Bishal Khawas', None, '2022 C Div final hero · 2 goals in title match'),
+            ]
+            for pos, order, name, num, note in xi:
+                db.session.add(AllTimeXI(
+                    position=pos, slot=order, name=name, number=num, note=note,
+                    order=order, is_published=True
+                ))
+            print('All-Time XI refreshed')
             if MuseumItem.query.count() == 0:
                 db.session.add(MuseumItem(
                     title='Martyr\'s Memorial C Division Champions 2022',
