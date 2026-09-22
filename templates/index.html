@@ -298,73 +298,6 @@
   </div>
 </section>
 
-<!-- Our Partners / Sponsors -->
-<section class="section sponsors-section">
-  <div class="container text-center">
-    <p class="sponsors-eyebrow">— POWERED BY —</p>
-    <h2 class="section-title sponsors-heading">OUR <span>PARTNERS.</span></h2>
-    <p class="section-sub">The brands that stand with The Elephants of Jhapa.</p>
-
-    {% if sponsors %}
-    {% set title_sp = sponsors|selectattr('category', 'equalto', 'Title Sponsor')|list %}
-    {% set principal = sponsors|selectattr('category', 'equalto', 'Principal Partner')|list %}
-    {% set official = sponsors|selectattr('category', 'equalto', 'Official Partner')|list %}
-    {% set main_sp = sponsors|selectattr('category', 'equalto', 'Main Sponsor')|list %}
-    {% set others = sponsors|rejectattr('category', 'in', ['Title Sponsor', 'Principal Partner', 'Official Partner', 'Main Sponsor'])|list %}
-
-    {% if title_sp %}
-    <p class="sponsor-tier-label">TITLE SPONSOR</p>
-    <div class="sponsors-tier sponsors-tier-title">
-      {% for s in title_sp %}
-      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-title-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
-      </a>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if principal or main_sp %}
-    <p class="sponsor-tier-label">PRINCIPAL PARTNERS</p>
-    <div class="sponsors-tier sponsors-tier-principal">
-      {% for s in principal %}
-      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
-      </a>
-      {% endfor %}
-      {% for s in main_sp %}
-      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
-        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
-      </a>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% if official or others %}
-    <p class="sponsor-tier-label">OFFICIAL PARTNERS</p>
-    <div class="sponsors-tier sponsors-tier-official">
-      {% for s in official %}
-      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
-        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
-      </a>
-      {% endfor %}
-      {% for s in others %}
-      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
-        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
-      </a>
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    {% else %}
-    <div class="coming-soon" style="padding:40px;">
-      <div class="icon">🤝</div>
-      <h2>Partners coming soon</h2>
-      <p>Upload Title Sponsor, Principal &amp; Official Partner logos from Admin → Sponsors.</p>
-    </div>
-    {% endif %}
-  </div>
-</section>
-
 {# —— Homepage hub: quick access to all areas —— #}
 <section class="section" id="explore">
   <div class="container">
@@ -534,6 +467,75 @@
     </div>
   </div>
 </section>
+
+<!-- Our Partners / Sponsors -->
+<section class="section sponsors-section">
+  <div class="container text-center">
+    <p class="sponsors-eyebrow">— POWERED BY —</p>
+    <h2 class="section-title sponsors-heading">OUR <span>PARTNERS.</span></h2>
+    <p class="section-sub">The brands that stand with The Elephants of Jhapa.</p>
+
+    {% if sponsors %}
+    {% set title_sp = sponsors|selectattr('category', 'equalto', 'Title Sponsor')|list %}
+    {% set principal = sponsors|selectattr('category', 'equalto', 'Principal Partner')|list %}
+    {% set official = sponsors|selectattr('category', 'equalto', 'Official Partner')|list %}
+    {% set main_sp = sponsors|selectattr('category', 'equalto', 'Main Sponsor')|list %}
+    {% set others = sponsors|rejectattr('category', 'in', ['Title Sponsor', 'Principal Partner', 'Official Partner', 'Main Sponsor'])|list %}
+
+    {% if title_sp %}
+    <p class="sponsor-tier-label">TITLE SPONSOR</p>
+    <div class="sponsors-tier sponsors-tier-title">
+      {% for s in title_sp %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-title-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if principal or main_sp %}
+    <p class="sponsor-tier-label">PRINCIPAL PARTNERS</p>
+    <div class="sponsors-tier sponsors-tier-principal">
+      {% for s in principal %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      {% for s in main_sp %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card" title="{{ s.name }}">
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if official or others %}
+    <p class="sponsor-tier-label">OFFICIAL PARTNERS</p>
+    <div class="sponsors-tier sponsors-tier-official">
+      {% for s in official %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+      {% for s in others %}
+      <a href="{{ s.website or '#' }}" target="_blank" rel="noopener" class="sponsor-logo-card sponsor-sm" title="{{ s.name }}">
+        {% if s.logo %}<img src="{{ s.logo|media_url }}" alt="{{ s.name }}" loading="lazy">{% else %}<span>{{ s.name }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="coming-soon" style="padding:40px;">
+      <div class="icon">🤝</div>
+      <h2>Partners coming soon</h2>
+      <p>Upload Title Sponsor, Principal &amp; Official Partner logos from Admin → Sponsors.</p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+
 {% endblock %}
 
 

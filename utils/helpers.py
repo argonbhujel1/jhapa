@@ -180,21 +180,19 @@ def format_currency(amount):
 
 
 def fetch_player_photo_url(player_name):
-    """Try Wikipedia REST summary thumbnail for a player name. Returns URL or None.
-    Only used when player has no photo yet — admin can override anytime.
+    """Fetch a public player portrait URL (Wikipedia / Wikimedia).
+    Returns absolute https URL or None. Admin override always wins if photo set.
     """
     if not player_name or not str(player_name).strip():
         return None
     import json
     import urllib.parse
     name = str(player_name).strip()
-    # Common title variants
-    candidates = [
-        name.replace(' ', '_'),
-        name.replace(' ', '_') + '_(footballer)',
-        name.replace(' ', '_') + '_(Nepalese_footballer)',
-    ]
-    # Known wiki title overrides for accuracy
+    headers = {
+        'User-Agent': 'JhapaFCOfficialSite/1.0 (https://jhapacityfc.vercel.app; club archive)',
+        'Accept': 'application/json',
+    }
+
     overrides = {
         'Anjan Bista': 'Anjan_Bista',
         'Laken Limbu': 'Laken_Limbu',
@@ -203,23 +201,80 @@ def fetch_player_photo_url(player_name):
         'Stefan Čupić': 'Stefan_Čupić',
         'Lazar Arsic': 'Lazar_Arsić',
         'Lazar Arsić': 'Lazar_Arsić',
+        'Nemanja Lemajic': 'Nemanja_Lemajić',
+        'Nemanja Lemajić': 'Nemanja_Lemajić',
+        'Mukhammad Isaev': 'Mukhammad_Isaev',
+        'Azamat Abdullaev': 'Azamat_Abdullaev',
+        'Abinash Syangtan': 'Abinash_Syangtan',
+        'Chhiring Lama': 'Chhiring_Lama',
     }
+
+    def _get_json(url):
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            return json.loads(resp.read().decode('utf-8', errors='ignore'))
+
+    def _thumb_from_summary(title):
+        url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title)
+        data = _get_json(url)
+        if data.get('type') == 'disambiguation':
+            return None
+        thumb = (data.get('thumbnail') or {}).get('source') or (data.get('originalimage') or {}).get('source')
+        if thumb:
+            return thumb.replace('/60px-', '/300px-').replace('/40px-', '/300px-').replace('/120px-', '/300px-')
+        return None
+
+    titles = []
     if name in overrides:
-        candidates.insert(0, overrides[name])
-    headers = {'User-Agent': 'JhapaFCWebsite/1.0 (club site; photo attribution Wikipedia)'}
-    for title in candidates:
+        titles.append(overrides[name])
+    titles += [
+        name.replace(' ', '_'),
+        name.replace(' ', '_') + '_(footballer)',
+        name.replace(' ', '_') + '_(Nepalese_footballer)',
+        name.replace(' ', '_') + '_(footballer,_born',  # partial may fail
+    ]
+
+    # Wikipedia search → best page → summary thumbnail
+    try:
+        q = urllib.parse.quote(name + ' footballer Nepal OR football')
+        search_url = (
+            'https://en.wikipedia.org/w/api.php?action=query&list=search'
+            '&srlimit=5&format=json&srsearch=' + urllib.parse.quote(name + ' football')
+        )
+        sdata = _get_json(search_url)
+        for hit in (sdata.get('query') or {}).get('search') or []:
+            t = hit.get('title')
+            if t:
+                titles.append(t.replace(' ', '_'))
+    except Exception:
+        pass
+
+    seen = set()
+    for title in titles:
+        if not title or title in seen:
+            continue
+        seen.add(title)
         try:
-            url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title)
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=6) as resp:
-                data = json.loads(resp.read().decode('utf-8', errors='ignore'))
-            thumb = (data.get('thumbnail') or {}).get('source')
-            if thumb and data.get('type') != 'disambiguation':
-                # Prefer larger size
-                thumb = thumb.replace('/60px-', '/200px-').replace('/40px-', '/200px-')
+            thumb = _thumb_from_summary(title)
+            if thumb:
                 return thumb
         except Exception:
             continue
+
+    # pageimages API fallback
+    try:
+        api = (
+            'https://en.wikipedia.org/w/api.php?action=query&format=json'
+            '&prop=pageimages&pithumbsize=400&titles=' + urllib.parse.quote(name)
+        )
+        data = _get_json(api)
+        pages = (data.get('query') or {}).get('pages') or {}
+        for _, page in pages.items():
+            t = (page.get('thumbnail') or {}).get('source')
+            if t:
+                return t
+    except Exception:
+        pass
     return None
 
 

@@ -338,6 +338,38 @@ def product_delete(id):
 # ---------- Players (placeholder ready) ----------
 @admin_bp.route('/players')
 @admin_required
+
+@admin_bp.route('/players/fetch-photos', methods=['POST'])
+@admin_required
+def players_fetch_photos():
+    """Auto-fetch missing player photos from Wikipedia."""
+    try:
+        from utils.helpers import ensure_player_photos, fetch_player_photo_url
+        from models import AllTimeXI, TopPerformer, ClubLegend
+        for pl in Player.query.all():
+            if pl.photo is not None and not str(pl.photo).strip():
+                pl.photo = None
+        n = ensure_player_photos(Player.query.all(), only_missing=True)
+        for xi in AllTimeXI.query.all():
+            if not xi.photo:
+                pl = Player.query.filter_by(name=xi.name).first()
+                xi.photo = (pl.photo if pl and pl.photo else None) or fetch_player_photo_url(xi.name)
+        for tp in TopPerformer.query.all():
+            if not tp.photo:
+                pl = Player.query.filter_by(name=tp.name).first()
+                tp.photo = (pl.photo if pl and pl.photo else None) or fetch_player_photo_url(tp.name)
+        for lg in ClubLegend.query.all():
+            if not lg.photo:
+                pl = Player.query.filter_by(name=lg.name).first()
+                lg.photo = (pl.photo if pl and pl.photo else None) or fetch_player_photo_url(lg.name)
+        db.session.commit()
+        flash('Auto-fetched photos for %s players (where available).' % n, 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Photo fetch failed: %s' % e, 'error')
+    return redirect(url_for('admin.players_list'))
+
+
 def players_list():
     items = Player.query.order_by(Player.order).all()
     return render_template('admin/players_list.html', items=items)

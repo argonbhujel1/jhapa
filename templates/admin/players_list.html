@@ -25,7 +25,12 @@
   <div class="admin-main">
     <div class="admin-header-bar">
       <h1>Players</h1>
-      <a href="{{ url_for('admin.player_edit') }}" class="btn btn-primary">+ Add New</a>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <form method="POST" action="{{ url_for('admin.players_fetch_photos') }}">
+          <button type="submit" class="btn btn-outline">Auto-fetch photos (Wikipedia)</button>
+        </form>
+        <a href="{{ url_for('admin.player_edit') }}" class="btn btn-primary">+ Add New</a>
+      </div>
     </div>
     <div class="admin-table-wrap">
       <table class="admin-table">

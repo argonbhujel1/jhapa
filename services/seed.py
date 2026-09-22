@@ -699,6 +699,10 @@ Together we are stronger. One Club. One Pride.'''),
         # Auto-fetch player photos (Wikipedia) when missing
         try:
             from utils.helpers import ensure_player_photos, fetch_player_photo_url
+            # Treat empty string as missing
+            for _pl in Player.query.all():
+                if _pl.photo is not None and not str(_pl.photo).strip():
+                    _pl.photo = None
             n = ensure_player_photos(Player.query.all(), only_missing=True)
             print('Player photos auto-fetched:', n)
             # All-Time XI photos from same source / squad
