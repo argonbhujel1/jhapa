@@ -365,6 +365,139 @@
   </div>
 </section>
 
+{# —— Homepage hub: quick access to all areas —— #}
+<section class="section" id="explore">
+  <div class="container">
+    <h2 class="section-title">Explore Jhapa FC</h2>
+    <p class="section-sub">Everything in one place</p>
+    <div class="grid-4" style="gap:14px;">
+      <a href="{{ url_for('main.matches') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">📅</div>
+        <strong style="color:#fff;">Matches</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Fixtures · Results · Table</p>
+      </a>
+      <a href="{{ url_for('main.squad') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">👥</div>
+        <strong style="color:#fff;">Squad</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Players & profiles</p>
+      </a>
+      <a href="{{ url_for('main.news') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">📰</div>
+        <strong style="color:#fff;">News</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Club updates</p>
+      </a>
+      <a href="{{ url_for('shop.shop') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">🛍️</div>
+        <strong style="color:#fff;">Store</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Kits & merch</p>
+      </a>
+      <a href="{{ url_for('main.club') }}#hall-of-fame" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">⭐</div>
+        <strong style="color:#fff;">Hall of Fame</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Legends & icons</p>
+      </a>
+      <a href="{{ url_for('main.club') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">🏆</div>
+        <strong style="color:#fff;">Club & Trophies</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">History · Ground</p>
+      </a>
+      <a href="{{ url_for('main.gallery') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">📸</div>
+        <strong style="color:#fff;">Gallery</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Matchday moments</p>
+      </a>
+      <a href="{{ url_for('main.membership') }}" class="card" style="padding:20px;text-align:center;text-decoration:none;">
+        <div style="font-size:1.6rem;">🎫</div>
+        <strong style="color:#fff;">Membership</strong>
+        <p class="text-muted" style="font-size:0.8rem;margin-top:6px;">Join the herd</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% if all_time_xi %}
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">All-Time XI</h2>
+    <p class="section-sub">Notable XI across club eras</p>
+    <div class="grid-4" style="gap:12px;">
+      {% for x in all_time_xi %}
+      <div class="card" style="padding:14px;text-align:center;">
+        <div style="width:64px;height:64px;margin:0 auto 8px;border-radius:50%;overflow:hidden;border:2px solid rgba(0,240,255,0.3);background:#0a1628;">
+          {% if x.photo %}<img src="{{ x.photo|media_url }}" alt="" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;" loading="lazy">{% else %}<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:var(--neon);">{{ x.position }}</div>{% endif %}
+        </div>
+        <div style="color:var(--neon);font-size:0.7rem;font-weight:700;">{{ x.position }}{% if x.number %} #{{ x.number }}{% endif %}</div>
+        <div style="color:#fff;font-weight:700;font-size:0.9rem;">{{ x.name }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3"><a href="{{ url_for('main.club') }}" class="btn btn-outline btn-sm">Full Club History</a></div>
+  </div>
+</section>
+{% endif %}
+
+{% if hall_preview %}
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Hall of Fame</h2>
+    <p class="section-sub">Documented achievements</p>
+    <div class="grid-3">
+      {% for h in hall_preview %}
+      <div class="card" style="padding:18px;">
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div style="width:56px;height:56px;border-radius:50%;overflow:hidden;background:#0a1628;flex-shrink:0;">
+            {% if h.photo %}<img src="{{ h.photo|media_url }}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">{% else %}⭐{% endif %}
+          </div>
+          <div>
+            <div style="color:#fff;font-weight:700;">{{ h.name }}</div>
+            <div class="text-muted" style="font-size:0.8rem;">{{ h.achievement or h.role }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3"><a href="{{ url_for('main.club') }}#hall-of-fame" class="btn btn-outline btn-sm">View Hall of Fame</a></div>
+  </div>
+</section>
+{% endif %}
+
+{% if membership_plans %}
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Membership</h2>
+    <p class="section-sub">Join The Elephants</p>
+    <div class="grid-4" style="gap:14px;">
+      {% for p in membership_plans %}
+      <div class="card" style="padding:20px;text-align:center;">
+        <div style="color:var(--neon);font-weight:800;letter-spacing:1px;">{{ p.name|upper }}</div>
+        <div style="color:#fff;font-size:1.4rem;font-weight:700;margin:8px 0;">
+          {% if p.price and p.price|float > 0 %}Rs. {{ "{:,.0f}".format(p.price|float) }}{% else %}FREE{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3"><a href="{{ url_for('main.membership') }}" class="btn btn-primary">Become a Member</a></div>
+  </div>
+</section>
+{% endif %}
+
+{% if gallery_preview %}
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Gallery</h2>
+    <div class="grid-4" style="gap:12px;">
+      {% for g in gallery_preview %}
+      <a href="{{ url_for('main.gallery') }}" class="card" style="padding:0;overflow:hidden;aspect-ratio:1;">
+        {% if g.image %}<img src="{{ g.image|media_url }}" alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy">{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-3"><a href="{{ url_for('main.gallery') }}" class="btn btn-outline btn-sm">Full Gallery</a></div>
+  </div>
+</section>
+{% endif %}
+
+
 {% endblock %}
 
 {% block tech_partner %}

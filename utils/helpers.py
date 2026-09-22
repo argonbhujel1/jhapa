@@ -177,3 +177,60 @@ def format_currency(amount):
         return f"Rs. {float(amount):,.0f}"
     except Exception:
         return 'Rs. 0'
+
+
+def fetch_player_photo_url(player_name):
+    """Try Wikipedia REST summary thumbnail for a player name. Returns URL or None.
+    Only used when player has no photo yet — admin can override anytime.
+    """
+    if not player_name or not str(player_name).strip():
+        return None
+    import json
+    import urllib.parse
+    name = str(player_name).strip()
+    # Common title variants
+    candidates = [
+        name.replace(' ', '_'),
+        name.replace(' ', '_') + '_(footballer)',
+        name.replace(' ', '_') + '_(Nepalese_footballer)',
+    ]
+    # Known wiki title overrides for accuracy
+    overrides = {
+        'Anjan Bista': 'Anjan_Bista',
+        'Laken Limbu': 'Laken_Limbu',
+        'Alhaji Gero': 'Alhaji_Gero',
+        'Stefan Cupic': 'Stefan_Čupić',
+        'Stefan Čupić': 'Stefan_Čupić',
+        'Lazar Arsic': 'Lazar_Arsić',
+        'Lazar Arsić': 'Lazar_Arsić',
+    }
+    if name in overrides:
+        candidates.insert(0, overrides[name])
+    headers = {'User-Agent': 'JhapaFCWebsite/1.0 (club site; photo attribution Wikipedia)'}
+    for title in candidates:
+        try:
+            url = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + urllib.parse.quote(title)
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                data = json.loads(resp.read().decode('utf-8', errors='ignore'))
+            thumb = (data.get('thumbnail') or {}).get('source')
+            if thumb and data.get('type') != 'disambiguation':
+                # Prefer larger size
+                thumb = thumb.replace('/60px-', '/200px-').replace('/40px-', '/200px-')
+                return thumb
+        except Exception:
+            continue
+    return None
+
+
+def ensure_player_photos(players, only_missing=True):
+    """Fill missing player.photo from Wikipedia when possible."""
+    updated = 0
+    for pl in players:
+        if only_missing and pl.photo:
+            continue
+        url = fetch_player_photo_url(pl.name)
+        if url:
+            pl.photo = url
+            updated += 1
+    return updated

@@ -486,6 +486,9 @@ Together we are stronger. One Club. One Pride.'''),
                 ('Alhaji Gero', 'Top Scorer', 1),
                 ('Lazar Arsic', 'Goals', 1),
                 ('Laken Limbu', 'Goals', 1),
+                ('Anjan Bista', 'Goals', 1),
+                ('Stefan Cupic', 'Clean Sheets', 5),
+                ('Bishal Khawas', 'Goals', 2),
             ]
             for i, (name, cat, val) in enumerate(scorers):
                 photo = None
@@ -691,5 +694,47 @@ Together we are stronger. One Club. One Pride.'''),
             print('Hall of Fame profiles updated')
         except Exception as e:
             print('hof profiles:', e)
+
+        
+        # Auto-fetch player photos (Wikipedia) when missing
+        try:
+            from utils.helpers import ensure_player_photos, fetch_player_photo_url
+            n = ensure_player_photos(Player.query.all(), only_missing=True)
+            print('Player photos auto-fetched:', n)
+            # All-Time XI photos from same source / squad
+            for xi in AllTimeXI.query.all():
+                if xi.photo:
+                    continue
+                pl = Player.query.filter_by(name=xi.name).first()
+                if pl and pl.photo:
+                    xi.photo = pl.photo
+                else:
+                    u = fetch_player_photo_url(xi.name)
+                    if u:
+                        xi.photo = u
+            # Top performers photos
+            for tp in TopPerformer.query.all():
+                if tp.photo:
+                    continue
+                pl = Player.query.filter_by(name=tp.name).first()
+                if pl and pl.photo:
+                    tp.photo = pl.photo
+                else:
+                    u = fetch_player_photo_url(tp.name)
+                    if u:
+                        tp.photo = u
+            for lg in ClubLegend.query.all():
+                if lg.photo:
+                    continue
+                pl = Player.query.filter_by(name=lg.name).first()
+                if pl and pl.photo:
+                    lg.photo = pl.photo
+                else:
+                    u = fetch_player_photo_url(lg.name)
+                    if u:
+                        lg.photo = u
+            db.session.commit()
+        except Exception as e:
+            print('auto photo:', e)
 
         print('Database seeded successfully.')

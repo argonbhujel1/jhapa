@@ -64,6 +64,18 @@ def index():
         pass
     squad_preview = Player.query.filter_by(is_published=True).order_by(Player.order, Player.number).limit(8).all()
 
+    # Homepage hub previews
+    try:
+        from models import MuseumItem, ClubLegend, AllTimeXI, MembershipPlan, GalleryImage
+        all_time_xi = AllTimeXI.query.filter_by(is_published=True).order_by(AllTimeXI.order).limit(11).all()
+        hall_preview = ClubLegend.query.filter_by(is_published=True, category='Hall of Fame').order_by(ClubLegend.order).limit(3).all()
+        museum_preview = MuseumItem.query.filter_by(is_published=True).order_by(MuseumItem.order).limit(3).all()
+        plans = MembershipPlan.query.filter_by(is_active=True).order_by(MembershipPlan.order, MembershipPlan.price).limit(4).all()
+        gallery_preview = GalleryImage.query.filter_by(is_published=True).order_by(GalleryImage.id.desc()).limit(4).all()
+        trophies = ClubInfo.query.filter_by(key='trophy_cabinet').first()
+    except Exception:
+        all_time_xi, hall_preview, museum_preview, plans, gallery_preview, trophies = [], [], [], [], [], None
+
     return render_template('index.html',
         next_match=next_match,
         recent_results=recent_results,
@@ -77,7 +89,13 @@ def index():
         sponsors=sponsors,
         standings=standings,
         performers=performers,
-        squad_preview=squad_preview
+        squad_preview=squad_preview,
+        all_time_xi=all_time_xi,
+        hall_preview=hall_preview,
+        museum_preview=museum_preview,
+        membership_plans=plans,
+        gallery_preview=gallery_preview,
+        trophies=trophies,
     )
 
 @main_bp.route('/club')
